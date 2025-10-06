@@ -1,92 +1,131 @@
 // Utility functions for FlowBudget (date, currency, week calculations)
+// Week numbering system: Apple Calendar compatible - Weeks start on Sunday, Week 1 includes January 1st
 
+/**
+ * Calculate the week number for a given date (Apple Calendar compatible)
+ * Week 1 includes January 1st, even if it's a partial week
+ * Each week starts on Sunday and ends on Saturday
+ * 
+ * @param {Date} date - The date to get the week number for
+ * @returns {number} - The week number (e.g., 41 for W41)
+ */
 export function getWeekNumber(date) {
   // Clone the date to avoid modifying the input
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const inputDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const yearStart = new Date(inputDate.getFullYear(), 0, 1);
   
-  // Get to the nearest Sunday in the past (or same day if it's Sunday)
-  const day = d.getUTCDay();
-  if (day !== 0) { // if not Sunday, go back to Sunday
-    d.setUTCDate(d.getUTCDate() - day);
-  }
+  // Calculate days since January 1st
+  const daysSinceYearStart = Math.floor((inputDate - yearStart) / (1000 * 60 * 60 * 24));
   
-  // Get first Sunday of the year
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  const firstSunday = new Date(yearStart);
-  const firstDay = yearStart.getUTCDay();
-  if (firstDay !== 0) {
-    firstSunday.setUTCDate(yearStart.getUTCDate() + (7 - firstDay));
-  }
+  // Find what day of week January 1st is (0 = Sunday, 1 = Monday, etc.)
+  const jan1DayOfWeek = yearStart.getDay();
   
-  // Calculate week number
-  const weekNo = Math.floor((d - firstSunday) / (7 * 24 * 60 * 60 * 1000)) + 1;
-  return weekNo;
+  // Adjust calculation to include partial first week
+  // Add the day offset so the first week starts from Sunday before or on Jan 1
+  const adjustedDays = daysSinceYearStart + jan1DayOfWeek;
+  const weekNumber = Math.floor(adjustedDays / 7) + 1;
+  
+  return weekNumber;
 }
 
-export function getWeekDateRange(year, week) {
-  // Get first Sunday of the year
-  const yearStart = new Date(Date.UTC(year, 0, 1));
-  const firstDay = yearStart.getUTCDay();
-  const firstSunday = new Date(yearStart);
-  if (firstDay !== 0) {
-    firstSunday.setUTCDate(yearStart.getUTCDate() + (7 - firstDay));
+/**
+ * Get the date range (Sunday to Saturday) for a specific week number in a year
+ * Compatible with Apple Calendar week numbering
+ * 
+ * @param {number} year - The year
+ * @param {number} weekNumber - The week number (1-based)
+ * @returns {Object} - Object with start (Sunday) and end (Saturday) dates
+ */
+export function getWeekDateRange(year, weekNumber) {
+  // Find January 1st
+  const yearStart = new Date(year, 0, 1);
+  const jan1DayOfWeek = yearStart.getDay(); // 0 = Sunday, 1 = Monday, etc.
+  
+  // Calculate the Sunday of the first week (which includes Jan 1)
+  const firstWeekSunday = new Date(yearStart);
+  if (jan1DayOfWeek !== 0) {
+    // Go back to the Sunday before Jan 1
+    firstWeekSunday.setDate(yearStart.getDate() - jan1DayOfWeek);
   }
   
-  // Calculate start of the requested week
-  const startOfWeek = new Date(firstSunday);
-  startOfWeek.setUTCDate(firstSunday.getUTCDate() + (week - 1) * 7);
+  // Calculate the start of the requested week (Sunday)
+  const startOfWeek = new Date(firstWeekSunday);
+  startOfWeek.setDate(firstWeekSunday.getDate() + (weekNumber - 1) * 7);
   
-  // Calculate end of week (Saturday)
+  // Calculate the end of the week (Saturday)
   const endOfWeek = new Date(startOfWeek);
-  endOfWeek.setUTCDate(startOfWeek.getUTCDate() + 6);
+  endOfWeek.setDate(startOfWeek.getDate() + 6);
   
-  return { start: startOfWeek, end: endOfWeek };
+  return { 
+    start: startOfWeek, 
+    end: endOfWeek 
+  };
 }
 
+/**
+ * Generate the week structure for a given month
+ * Includes all weeks that have at least one day in the target month
+ * Weeks maintain their actual dates even when crossing month boundaries
+ * 
+ * @param {number} year - The year
+ * @param {number} month - The month (0-based, January = 0)
+ * @returns {Array} - Array of week objects with week numbers and date ranges
+ */
 export function generateMonthStructure(year, month) {
-  const weeksMap = new Map();
+  const weeksInMonth = [];
   
-  // Start from last Sunday of previous month
+  // Get the first and last day of the target month
   const monthStart = new Date(year, month, 1);
-  const firstDay = new Date(monthStart);
-  const lastSundayOffset = firstDay.getDay();
-  firstDay.setDate(firstDay.getDate() - lastSundayOffset);
+  const monthEnd = new Date(year, month + 1, 0); // Last day of month
   
-  // End on first Saturday of next month
-  const monthEnd = new Date(year, month + 1, 0);
-  const lastDay = new Date(monthEnd);
-  const nextSaturdayOffset = 6 - lastDay.getDay();
-  lastDay.setDate(lastDay.getDate() + nextSaturdayOffset);
+  // Find the Sunday of the week containing the first day of the month
+  const firstWeekStart = new Date(monthStart);
+  const startDayOffset = monthStart.getDay(); // 0 = Sunday, 1 = Monday, etc.
+  firstWeekStart.setDate(monthStart.getDate() - startDayOffset);
   
-  // Iterate through all days that might be visible in this month view
-  const currentDate = new Date(firstDay);
-  while (currentDate <= lastDay) {
+  // Find the Saturday of the week containing the last day of the month
+  const lastWeekEnd = new Date(monthEnd);
+  const endDayOffset = 6 - monthEnd.getDay(); // Days to add to reach Saturday
+  lastWeekEnd.setDate(monthEnd.getDate() + endDayOffset);
+  
+  // Iterate through each week in the range
+  const currentDate = new Date(firstWeekStart);
+  const processedWeeks = new Set();
+  
+  while (currentDate <= lastWeekEnd) {
     const weekNumber = getWeekNumber(currentDate);
     
-    if (!weeksMap.has(weekNumber)) {
-      const { start, end } = getWeekDateRange(currentDate.getFullYear(), weekNumber);
+    // Only process each week once
+    if (!processedWeeks.has(weekNumber) && weekNumber > 0) {
+      processedWeeks.add(weekNumber);
       
-      // Always show full week dates, even if they cross month boundaries
-      const dateRange = `${start.getDate()} ${start.toLocaleString('en-US', { month: 'short' })} – ${end.getDate()} ${end.toLocaleString('en-US', { month: 'short' })}`;
+      // Get the actual week boundaries
+      const { start: weekStart, end: weekEnd } = getWeekDateRange(year, weekNumber);
       
-      // Only include weeks that overlap with the target month
-      if ((start.getMonth() <= month && start.getFullYear() <= year) ||
-          (end.getMonth() >= month && end.getFullYear() >= year)) {
-        weeksMap.set(weekNumber, {
+      // Check if this week overlaps with our target month
+      const weekOverlapsMonth = !(weekEnd < monthStart || weekStart > monthEnd);
+      
+      if (weekOverlapsMonth) {
+        // Format the date range showing actual week dates
+        const dateRange = `${weekStart.getDate()} ${weekStart.toLocaleString('en-US', { month: 'short' })} – ${weekEnd.getDate()} ${weekEnd.toLocaleString('en-US', { month: 'short' })}`;
+        
+        weeksInMonth.push({
           weekNumber: weekNumber,
           dateRange: dateRange,
           expenses: [],
           incomes: [],
-          startDate: start.toISOString(),
-          endDate: end.toISOString()
+          startDate: weekStart.toISOString(),
+          endDate: weekEnd.toISOString()
         });
       }
     }
     
-    currentDate.setDate(currentDate.getDate() + 1);
+    // Move to next week
+    currentDate.setDate(currentDate.getDate() + 7);
   }
   
-  return Array.from(weeksMap.values());
+  // Sort weeks by week number to ensure proper order
+  return weeksInMonth.sort((a, b) => a.weekNumber - b.weekNumber);
 }
 
 export function formatCurrency(amount) {

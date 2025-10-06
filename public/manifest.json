@@ -1,0 +1,24 @@
+{
+  "name": "FlowBudget - Weekly Budget Tracker",
+  "short_name": "FlowBudget",
+  "description": "Weekly budget tracking with Sunday-based weeks. Track income, expenses, and cash flow across months.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4F46E5",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon-16x16.svg",
+      "sizes": "16x16",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["finance", "productivity", "utilities"],
+  "screenshots": []
+}

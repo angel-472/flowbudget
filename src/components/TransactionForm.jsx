@@ -6,16 +6,33 @@ const TransactionForm = ({ currentMonth, currentYear, currentWeekNumber, onAdd, 
   const [amount, setAmount] = useState('');
   const [type, setType] = useState('incomes');
   const [date, setDate] = useState(() => {
-    const { start } = getWeekDateRange(currentYear, currentWeekNumber);
-    return start.toISOString().substring(0, 10);
+    // Default to today's date if we're in the current week, otherwise use the week's Sunday
+    const today = new Date();
+    const currentWeekOfToday = getWeekNumber(today);
+    
+    if (currentWeekOfToday === currentWeekNumber) {
+      // We're in the current week, default to today
+      return today.toISOString().substring(0, 10);
+    } else {
+      // Default to the Sunday of the selected week
+      const { start } = getWeekDateRange(currentYear, currentWeekNumber);
+      return start.toISOString().substring(0, 10);
+    }
   });
   const [targetWeek, setTargetWeek] = useState(currentWeekNumber);
+  const [targetMonth, setTargetMonth] = useState(currentMonth);
+  const [targetYear, setTargetYear] = useState(currentYear);
 
-  // Update target week when date changes
+  // Update target week, month, and year when date changes
   useEffect(() => {
     const selectedDate = new Date(date);
     const newWeekNumber = getWeekNumber(selectedDate);
+    const newMonth = selectedDate.getMonth();
+    const newYear = selectedDate.getFullYear();
+    
     setTargetWeek(newWeekNumber);
+    setTargetMonth(newMonth);
+    setTargetYear(newYear);
   }, [date]);
   const [category, setCategory] = useState('');
 
@@ -33,8 +50,9 @@ const TransactionForm = ({ currentMonth, currentYear, currentWeekNumber, onAdd, 
       amount: parsedAmount,
       category: category || null,
       status: 'pending',
+      type: type, // Add type to the transaction object
     };
-    onAdd(currentYear, currentMonth, targetWeek, type, newTransaction);
+    onAdd(newTransaction); // Simplified API - just pass the transaction
     onClose();
   };
 
@@ -42,10 +60,24 @@ const TransactionForm = ({ currentMonth, currentYear, currentWeekNumber, onAdd, 
     <div className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-2xl space-y-4">
       <h3 className="text-xl font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
         Add Transaction to W{targetWeek}
-        {targetWeek !== currentWeekNumber && (
-          <p className="text-sm text-amber-600 dark:text-amber-400 mt-1">
-            Note: Transaction will be added to week {targetWeek} based on selected date
-          </p>
+        {(targetWeek !== currentWeekNumber || targetMonth !== currentMonth || targetYear !== currentYear) && (
+          <>
+            <p className="text-sm text-amber-600 dark:text-amber-400 mt-1">
+              Note: Transaction will be added to W{targetWeek} 
+              {targetYear !== currentYear && ` (${targetYear})`}
+              {targetMonth !== currentMonth && ` in ${new Date(targetYear, targetMonth, 1).toLocaleString('en-US', { month: 'long' })} `}
+            </p>
+            {(() => {
+              const { start, end } = getWeekDateRange(targetYear, targetWeek);
+              return (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Week {targetWeek}: {start.getDate()} {start.toLocaleString('en-US', { month: 'short' })} – 
+                  {end.getDate()} {end.toLocaleString('en-US', { month: 'short' })}
+                  {targetYear !== currentYear && ` ${targetYear}`}
+                </p>
+              );
+            })()}
+          </>
         )}
       </h3>
       <form onSubmit={handleSubmit} className="space-y-4">

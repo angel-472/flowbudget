@@ -1,7 +1,7 @@
 import { formatCurrency, formatDate } from '../utils';
 import { Trash2, Check, Circle } from 'lucide-react';
 
-const TransactionList = ({ transactions, type, weekNumber, currentYear, currentMonth, onRemove, onToggleStatus }) => {
+const TransactionList = ({ transactions, type, onRemove, onToggleStatus }) => {
   const isIncome = type === 'incomes';
   const colorClass = isIncome ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
   const bgColorClass = isIncome ? 'bg-green-50 dark:bg-green-900/30' : 'bg-red-50 dark:bg-red-900/30';
@@ -41,14 +41,14 @@ const TransactionList = ({ transactions, type, weekNumber, currentYear, currentM
                   <td className="py-2 px-3 text-center">
                     <div className="flex items-center justify-center space-x-2">
                       <button
-                        onClick={() => onToggleStatus(currentYear, currentMonth, weekNumber, type, t.id)}
+                        onClick={() => onToggleStatus(t.id)}
                         className={`p-1 rounded-full ${t.status === 'done' ? 'text-indigo-500 bg-indigo-100 dark:bg-indigo-900/50' : 'text-gray-400 hover:text-indigo-500 hover:bg-indigo-100/50 dark:hover:bg-indigo-900/50'} transition`}
                         title={t.status === 'done' ? 'Mark as Pending' : 'Mark as Done'}
                       >
                         {t.status === 'done' ? <Check size={16} /> : <Circle size={16} />}
                       </button>
                       <button
-                        onClick={() => onRemove(currentYear, currentMonth, weekNumber, type, t.id)}
+                        onClick={() => onRemove(t.id)}
                         className="p-1 rounded-full text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-100/50 dark:hover:bg-red-900/50 transition"
                         title="Delete Transaction"
                       >

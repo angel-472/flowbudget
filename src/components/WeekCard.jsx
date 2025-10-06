@@ -4,7 +4,7 @@ import TransactionForm from './TransactionForm';
 import { calculateWeeklyTotals, formatCurrency } from '../utils';
 import { Plus } from 'lucide-react';
 
-const WeekCard = ({ week, currentYear, currentMonth, onAddTransaction, onRemoveTransaction, onToggleStatus, setError }) => {
+const WeekCard = ({ week, onAddTransaction, onRemoveTransaction, onToggleStatus, setError }) => {
   const totals = useMemo(() => calculateWeeklyTotals(week), [week]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const netColor = totals.net >= 0 ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400';
@@ -29,9 +29,6 @@ const WeekCard = ({ week, currentYear, currentMonth, onAddTransaction, onRemoveT
         <TransactionList
           transactions={week.incomes}
           type="incomes"
-          weekNumber={week.weekNumber}
-          currentYear={currentYear}
-          currentMonth={currentMonth}
           onRemove={onRemoveTransaction}
           onToggleStatus={onToggleStatus}
           setError={setError}
@@ -39,9 +36,6 @@ const WeekCard = ({ week, currentYear, currentMonth, onAddTransaction, onRemoveT
         <TransactionList
           transactions={week.expenses}
           type="expenses"
-          weekNumber={week.weekNumber}
-          currentYear={currentYear}
-          currentMonth={currentMonth}
           onRemove={onRemoveTransaction}
           onToggleStatus={onToggleStatus}
           setError={setError}
@@ -54,8 +48,8 @@ const WeekCard = ({ week, currentYear, currentMonth, onAddTransaction, onRemoveT
       {isFormOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center z-50 p-4">
           <TransactionForm
-            currentMonth={currentMonth}
-            currentYear={currentYear}
+            currentMonth={new Date(week.startDate).getMonth()}
+            currentYear={new Date(week.startDate).getFullYear()}
             currentWeekNumber={week.weekNumber}
             onAdd={onAddTransaction}
             onClose={() => setIsFormOpen(false)}

@@ -54,8 +54,6 @@ const MonthView = ({ transactions, loading, error, currentMonth, currentYear, se
             <WeekCard
               key={week.weekNumber}
               week={week}
-              currentYear={currentYear}
-              currentMonth={currentMonth}
               onAddTransaction={onAddTransaction}
               onRemoveTransaction={onRemoveTransaction}
               onToggleStatus={onToggleStatus}

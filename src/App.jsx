@@ -109,19 +109,28 @@ function App() {
     }
   }, [darkMode]);
   // Add transaction handler
-  const handleAddTransaction = (year, month, weekNumber, type, newTransaction) => {
+  const handleAddTransaction = (newTransaction) => {
     try {
-      addTransaction(year, month, weekNumber, type, newTransaction, userId);
-      fetchBudget(year, month);
+      addTransaction(newTransaction, userId);
+      fetchBudget(currentYear, currentMonth); // Refresh current view
     } catch (e) {
       setError(e.message);
     }
   };
   // Remove transaction handler
-  const handleRemoveTransaction = (year, month, weekNumber, type, transactionId) => {
+  const handleRemoveTransaction = (transactionId) => {
     try {
-      deleteTransaction(year, month, weekNumber, type, transactionId, userId);
-      fetchBudget(year, month);
+      deleteTransaction(transactionId, userId);
+      fetchBudget(currentYear, currentMonth); // Refresh current view
+    } catch (e) {
+      setError(e.message);
+    }
+  };
+  // Toggle transaction status handler
+  const handleToggleStatus = (transactionId) => {
+    try {
+      toggleTransactionStatus(transactionId, userId);
+      fetchBudget(currentYear, currentMonth); // Refresh current view
     } catch (e) {
       setError(e.message);
     }
@@ -211,7 +220,7 @@ function App() {
                 onAddTransaction={handleAddTransaction}
                 onRemoveTransaction={handleRemoveTransaction}
                 setError={setError}
-                onToggleStatus={toggleTransactionStatus}
+                onToggleStatus={handleToggleStatus}
               />
             )}
           </main>
