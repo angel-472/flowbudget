@@ -1,6 +1,17 @@
 // Mock budget API for demo purposes (localStorage-based)
 // Date-based transaction storage - no grouping by month/week in storage
-import { getWeekNumber, getWeekDateRange } from './utils.js';
+import { getWeekNumber, getWeekDateRange, createLocalDate } from './utils.js';
+
+// Polyfill for crypto.randomUUID() for iOS devices and older browsers
+if (!crypto.randomUUID) {
+  crypto.randomUUID = function() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  };
+}
 
 const STORAGE_KEY = 'flowbudget_transactions';
 
@@ -68,7 +79,7 @@ export function getTransactionsByWeek(year, weekNumber, userId) {
   const { start, end } = getWeekDateRange(year, weekNumber);
   
   const weekTransactions = transactions.filter(t => {
-    const transactionDate = new Date(t.date);
+    const transactionDate = createLocalDate(t.date); // Use createLocalDate to avoid timezone issues
     return transactionDate >= start && transactionDate <= end;
   });
   
@@ -86,7 +97,6 @@ export function getTransactionsByWeek(year, weekNumber, userId) {
  * @returns {Array} Array of week objects with transactions
  */
 export function getTransactionsByMonth(year, month, userId) {
-  const transactions = getTransactions().filter(t => t.userId === userId);
   
   // Get month boundaries
   const monthStart = new Date(year, month, 1);

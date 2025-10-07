@@ -1,4 +1,4 @@
-import { formatCurrency, formatDate } from '../utils';
+import { formatCurrency, formatDate, createLocalDate } from '../utils';
 import { Trash2, Check, Circle } from 'lucide-react';
 
 const TransactionList = ({ transactions, type, onRemove, onToggleStatus }) => {
@@ -29,11 +29,11 @@ const TransactionList = ({ transactions, type, onRemove, onToggleStatus }) => {
           </thead>
           <tbody>
             {transactions
-              .sort((a, b) => new Date(a.date) - new Date(b.date))
+              .sort((a, b) => createLocalDate(a.date) - createLocalDate(b.date))
               .map((t) => (
                 <tr key={t.id} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-150 ease-in-out">
                   <td className="py-2 px-3 text-sm text-gray-700 dark:text-gray-300 font-medium">{formatDate(t.date)}</td>
-                  <td className="py-2 px-3 text-sm text-gray-700 dark:text-gray-300 truncate">
+                  <td className="py-2 px-3 text-sm text-gray-700 dark:text-gray-300 truncate md:max-w-2xs">
                     {t.description}
                     {t.category && <span className="ml-2 inline-block px-2 text-xs rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">({t.category})</span>}
                   </td>

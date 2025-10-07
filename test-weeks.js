@@ -1,5 +1,5 @@
 // Test file for week calculation logic
-import { getWeekNumber, getWeekDateRange, generateMonthStructure } from './src/utils.js';
+import { getWeekNumber } from './src/utils.js';
 
 console.log('🧪 Week Calculation Tests - Apple Calendar Verification\n');
 

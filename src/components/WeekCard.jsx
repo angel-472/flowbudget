@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import TransactionList from './TransactionList';
 import TransactionForm from './TransactionForm';
-import { calculateWeeklyTotals, formatCurrency } from '../utils';
+import { calculateWeeklyTotals, formatCurrency, createLocalDate } from '../utils';
 import { Plus } from 'lucide-react';
 
 const WeekCard = ({ week, onAddTransaction, onRemoveTransaction, onToggleStatus, setError }) => {
@@ -48,8 +48,8 @@ const WeekCard = ({ week, onAddTransaction, onRemoveTransaction, onToggleStatus,
       {isFormOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center z-50 p-4">
           <TransactionForm
-            currentMonth={new Date(week.startDate).getMonth()}
-            currentYear={new Date(week.startDate).getFullYear()}
+            currentMonth={createLocalDate(week.startDate.substring(0, 10)).getMonth()}
+            currentYear={createLocalDate(week.startDate.substring(0, 10)).getFullYear()}
             currentWeekNumber={week.weekNumber}
             onAdd={onAddTransaction}
             onClose={() => setIsFormOpen(false)}

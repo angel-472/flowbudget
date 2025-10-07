@@ -1,21 +1,20 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import './App.css';
-import { Home, Sun, Moon, LogOut } from 'lucide-react';
-import { getMockUser, signOutMock } from './mockAuth';
+import { Home, Sun, Moon } from 'lucide-react';
 import {
   fetchOrCreateMonthBudget,
   addTransaction,
   deleteTransaction,
   toggleTransactionStatus
-} from './mockBudgetApi';
+} from './budgetApi';
 import { calculateWeeklyTotals } from './utils';
 import MonthView from './components/MonthView';
 import Dashboard from './components/Dashboard';
+import './migration'; // Import migration tool for development
+import './dbTest'; // Import database test utilities
 
-function App() {
-  // Auth State
-  const [userId, setUserId] = useState(null);
-  const [isAuthReady, setIsAuthReady] = useState(false);
+function App({ user }) {
+  // User is now passed from AuthWrapper
   // Date & UI State
   const today = useMemo(() => new Date(), []);
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
@@ -40,36 +39,37 @@ function App() {
       return newMode;
     });
   };
-  // Initialize mock auth on mount
-  useEffect(() => {
-    const user = getMockUser();
-    setUserId(user.uid);
-    setIsAuthReady(true);
-  }, []);
+  // User is authenticated through AuthWrapper
   // Effect to handle month change and fetch/create budget data
-  const fetchBudget = useCallback((year, month) => {
-    if (!isAuthReady || !userId) return;
+  const fetchBudget = useCallback(async (year, month) => {
+    if (!user) return;
     setLoading(true);
     setError(null);
-    // Fetch Current Month Budget
-    const weeks = fetchOrCreateMonthBudget(year, month, userId);
-    setTransactions(weeks);
-    setLoading(false);
-    // Fetch Previous Month Budget for Dashboard Comparison
-    let prevYear = year;
-    let prevMonth = month - 1;
-    if (prevMonth < 0) {
-      prevMonth = 11;
-      prevYear -= 1;
+    try {
+      // Fetch Current Month Budget
+      const weeks = await fetchOrCreateMonthBudget(year, month, user.id);
+      setTransactions(weeks);
+      // Fetch Previous Month Budget for Dashboard Comparison
+      let prevYear = year;
+      let prevMonth = month - 1;
+      if (prevMonth < 0) {
+        prevMonth = 11;
+        prevYear -= 1;
+      }
+      const prevWeeks = await fetchOrCreateMonthBudget(prevYear, prevMonth, user.id);
+      setPrevTransactions(prevWeeks || []);
+    } catch (error) {
+      console.error('Error fetching budget data:', error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
     }
-    const prevWeeks = fetchOrCreateMonthBudget(prevYear, prevMonth, userId);
-    setPrevTransactions(prevWeeks || []);
-  }, [isAuthReady, userId]);
+  }, [user]);
   useEffect(() => {
-    if (isAuthReady && userId) {
+    if (user) {
       fetchBudget(currentYear, currentMonth);
     }
-  }, [currentYear, currentMonth, isAuthReady, userId, fetchBudget]);
+  }, [currentYear, currentMonth, user, fetchBudget]);
   // Setter for year/month from navigation
   const setDate = (year, month) => {
     setCurrentYear(year);
@@ -109,49 +109,33 @@ function App() {
     }
   }, [darkMode]);
   // Add transaction handler
-  const handleAddTransaction = (newTransaction) => {
+  const handleAddTransaction = async (newTransaction) => {
     try {
-      addTransaction(newTransaction, userId);
-      fetchBudget(currentYear, currentMonth); // Refresh current view
+      await addTransaction(newTransaction, user.id);
+      await fetchBudget(currentYear, currentMonth); // Refresh current view
     } catch (e) {
       setError(e.message);
     }
   };
   // Remove transaction handler
-  const handleRemoveTransaction = (transactionId) => {
+  const handleRemoveTransaction = async (transactionId) => {
     try {
-      deleteTransaction(transactionId, userId);
-      fetchBudget(currentYear, currentMonth); // Refresh current view
+      await deleteTransaction(transactionId, user.id);
+      await fetchBudget(currentYear, currentMonth); // Refresh current view
     } catch (e) {
       setError(e.message);
     }
   };
   // Toggle transaction status handler
-  const handleToggleStatus = (transactionId) => {
+  const handleToggleStatus = async (transactionId) => {
     try {
-      toggleTransactionStatus(transactionId, userId);
-      fetchBudget(currentYear, currentMonth); // Refresh current view
+      await toggleTransactionStatus(transactionId, user.id);
+      await fetchBudget(currentYear, currentMonth); // Refresh current view
     } catch (e) {
       setError(e.message);
     }
   };
-  if (!isAuthReady) {
-    return (
-      <div className={`flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900 transition duration-300 ${darkMode ? 'dark' : ''}`}>
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 dark:border-indigo-400 mx-auto"></div>
-          <p className="mt-4 text-gray-700 dark:text-gray-300">Authenticating and loading FlowBudget...</p>
-        </div>
-      </div>
-    );
-  }
-  if (!userId) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-red-50 dark:bg-red-900/50">
-        <p className="text-red-800 dark:text-red-300">Authentication failed. Cannot load app.</p>
-      </div>
-    );
-  }
+  // Authentication is handled by AuthWrapper
   return (
     <div className={`min-h-screen ${darkMode ? 'dark' : ''}`}>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-200 transition-colors duration-300">
@@ -159,7 +143,7 @@ function App() {
           <div className="mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
             <h1 className="text-2xl font-black text-indigo-600 dark:text-indigo-400">FlowBudget</h1>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:inline">User ID: {userId.substring(0, 8)}...</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:inline">{user.email}</span>
               <button
                 onClick={toggleDarkMode}
                 className="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
@@ -167,18 +151,11 @@ function App() {
               >
                 {darkMode ? <Sun size={20} /> : <Moon size={20} />}
               </button>
-              <button
-                onClick={signOutMock}
-                className="p-2 rounded-full text-red-600 dark:text-red-400 hover:bg-red-100/50 dark:hover:bg-red-900/50 transition"
-                title="Sign Out"
-              >
-                <LogOut size={20} />
-              </button>
             </div>
           </div>
         </header>
         <div className="flex flex-col md:flex-row mx-auto">
-          <nav className="md:w-64 bg-white dark:bg-gray-800 md:h-screen md:sticky top-16 p-4 border-b md:border-b-0 md:border-r border-gray-100 dark:border-gray-700/50 shadow-lg md:shadow-none overflow-x-auto">
+          <nav className="md:w-64 bg-white dark:bg-gray-800 md:h-screen md:sticky top-16 p-4 border-b md:border-b-0 md:border-r border-gray-100 dark:border-gray-700/50 shadow-lg md:shadow-none overflow-x-auto overflow-y-auto">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 border-b pb-2 dark:border-gray-700 hidden md:block">Navigation</h3>
             <div className="flex md:flex-col space-x-2 md:space-x-0 md:space-y-2">
               <button

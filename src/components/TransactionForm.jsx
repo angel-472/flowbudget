@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { getWeekNumber, getWeekDateRange } from '../utils';
+import { getWeekNumber, getWeekDateRange, createLocalDate } from '../utils';
 
 const TransactionForm = ({ currentMonth, currentYear, currentWeekNumber, onAdd, onClose, setError }) => {
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
-  const [type, setType] = useState('incomes');
+  const [type, setType] = useState('expenses'); // Default to 'expenses'
   const [date, setDate] = useState(() => {
     // Default to today's date if we're in the current week, otherwise use the week's Sunday
     const today = new Date();
@@ -25,7 +25,7 @@ const TransactionForm = ({ currentMonth, currentYear, currentWeekNumber, onAdd, 
 
   // Update target week, month, and year when date changes
   useEffect(() => {
-    const selectedDate = new Date(date);
+    const selectedDate = createLocalDate(date); // Use createLocalDate to avoid timezone issues
     const newWeekNumber = getWeekNumber(selectedDate);
     const newMonth = selectedDate.getMonth();
     const newYear = selectedDate.getFullYear();
@@ -71,8 +71,7 @@ const TransactionForm = ({ currentMonth, currentYear, currentWeekNumber, onAdd, 
               const { start, end } = getWeekDateRange(targetYear, targetWeek);
               return (
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Week {targetWeek}: {start.getDate()} {start.toLocaleString('en-US', { month: 'short' })} – 
-                  {end.getDate()} {end.toLocaleString('en-US', { month: 'short' })}
+                  Week {targetWeek}: {start.getDate()} {start.toLocaleString('en-US', { month: 'short' })} - {end.getDate()} {end.toLocaleString('en-US', { month: 'short' })}
                   {targetYear !== currentYear && ` ${targetYear}`}
                 </p>
               );
@@ -98,7 +97,7 @@ const TransactionForm = ({ currentMonth, currentYear, currentWeekNumber, onAdd, 
             <input
               type="date"
               value={date}
-              onChange={e => setDate(e.target.value)}
+              onChange={e => { setDate(e.target.value); console.log(e.target.value); }}
               className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 transition"
             />
           </label>

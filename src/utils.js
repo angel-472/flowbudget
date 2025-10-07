@@ -2,6 +2,16 @@
 // Week numbering system: Apple Calendar compatible - Weeks start on Sunday, Week 1 includes January 1st
 
 /**
+ * Create a local date from a date string (YYYY-MM-DD) without timezone issues
+ * @param {string} dateString - Date string in YYYY-MM-DD format
+ * @returns {Date} - Local date object
+ */
+export function createLocalDate(dateString) {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day); // month is 0-based in Date constructor
+}
+
+/**
  * Calculate the week number for a given date (Apple Calendar compatible)
  * Week 1 includes January 1st, even if it's a partial week
  * Each week starts on Sunday and ends on Saturday
@@ -138,7 +148,7 @@ export function formatCurrency(amount) {
 }
 
 export function formatDate(dateString) {
-  const date = new Date(dateString);
+  const date = createLocalDate(dateString);
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
