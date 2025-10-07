@@ -48,7 +48,7 @@ export async function addTransaction(transaction, userId = null) {
  * @param {string} userId - User identifier (optional, RLS will enforce)
  * @returns {Promise<void>}
  */
-export async function deleteTransaction(transactionId, userId = null) {
+export async function deleteTransaction(transactionId) {
   try {
     const { error } = await supabase
       .from('flowbudget_transactions')
@@ -68,7 +68,7 @@ export async function deleteTransaction(transactionId, userId = null) {
  * @param {string} userId - User identifier (optional, RLS will enforce)
  * @returns {Promise<Object>} Updated transaction
  */
-export async function toggleTransactionStatus(transactionId, userId = null) {
+export async function toggleTransactionStatus(transactionId) {
   try {
     // First get the current transaction
     const { data: currentTransaction, error: fetchError } = await supabase
@@ -108,7 +108,7 @@ export async function toggleTransactionStatus(transactionId, userId = null) {
  * @param {string} userId - User identifier (optional, RLS will enforce)
  * @returns {Promise<Object>} Object with incomes and expenses arrays
  */
-export async function getTransactionsByWeek(year, weekNumber, userId = null) {
+export async function getTransactionsByWeek(year, weekNumber) {
   try {
     const { start, end } = getWeekDateRange(year, weekNumber);
     
@@ -238,16 +238,81 @@ export async function migrateLocalStorageData() {
       throw new Error('User must be authenticated to migrate data');
     }
 
-    // Prepare transactions for Supabase format
-    const transactionsToMigrate = localData.map(t => ({
-      user_id: user.id,
-      type: t.type,
-      category: t.category,
-      description: t.description,
-      amount: parseFloat(t.amount),
-      date: t.date,
-      status: t.status || 'pending'
-    }));
+    // Helper function to sanitize and provide default values
+    const sanitizeTransaction = (transaction, index) => {
+      const sanitized = {
+        user_id: user.id,
+        // Type: default to 'expenses' if null/undefined/invalid
+        type: (transaction.type === 'incomes' || transaction.type === 'expenses') 
+          ? transaction.type 
+          : 'expenses',
+        // Category: default to empty string if null/undefined
+        category: transaction.category || '',
+        // Description: default to generic description if null/undefined/empty
+        description: transaction.description || `Transaction ${index + 1}`,
+        // Amount: convert to number, default to 0 if invalid
+        amount: (() => {
+          const parsedAmount = parseFloat(transaction.amount);
+          return !isNaN(parsedAmount) && parsedAmount > 0 ? parsedAmount : 0.01; // Minimum 1 cent
+        })(),
+        // Date: validate and default to today if invalid
+        date: (() => {
+          if (!transaction.date) return new Date().toISOString().split('T')[0];
+          
+          // Check if date is valid
+          const testDate = new Date(transaction.date);
+          if (isNaN(testDate.getTime())) {
+            return new Date().toISOString().split('T')[0];
+          }
+          
+          // Ensure proper YYYY-MM-DD format
+          if (typeof transaction.date === 'string' && transaction.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            return transaction.date;
+          }
+          
+          // Convert other date formats to YYYY-MM-DD
+          return testDate.toISOString().split('T')[0];
+        })(),
+        // Status: default to 'pending' if null/undefined/invalid
+        status: (transaction.status === 'pending' || transaction.status === 'done') 
+          ? transaction.status 
+          : 'pending'
+      };
+
+      return sanitized;
+    };
+
+    // Prepare transactions for Supabase format with validation and defaults
+    console.log('🔄 Sanitizing transaction data...');
+    const transactionsToMigrate = localData
+      .map((transaction, index) => {
+        try {
+          return sanitizeTransaction(transaction, index);
+        } catch (error) {
+          console.warn(`⚠️ Skipping invalid transaction at index ${index}:`, error);
+          return null;
+        }
+      })
+      .filter(Boolean); // Remove any null transactions
+
+    if (transactionsToMigrate.length === 0) {
+      return { migrated: 0, message: 'No valid transactions to migrate after sanitization' };
+    }
+
+    console.log(`📊 Prepared ${transactionsToMigrate.length} transactions for migration`);
+    
+    // Show a summary of what will be migrated
+    const summary = transactionsToMigrate.reduce((acc, t) => {
+      acc[t.type] = (acc[t.type] || 0) + 1;
+      acc.totalAmount += t.amount;
+      return acc;
+    }, { incomes: 0, expenses: 0, totalAmount: 0 });
+
+    console.log('Migration Summary:', {
+      incomes: summary.incomes || 0,
+      expenses: summary.expenses || 0,
+      totalAmount: summary.totalAmount.toFixed(2)
+    });
 
     // Insert all transactions
     const { data, error } = await supabase
@@ -257,12 +322,14 @@ export async function migrateLocalStorageData() {
 
     handleSupabaseError(error);
 
-    // Optionally clear localStorage after successful migration
-    // localStorage.removeItem(STORAGE_KEY);
-
     return {
       migrated: data.length,
-      message: `Successfully migrated ${data.length} transactions to Supabase`
+      skipped: localData.length - transactionsToMigrate.length,
+      message: `Successfully migrated ${data.length} transactions to Supabase${
+        localData.length - transactionsToMigrate.length > 0 
+          ? ` (${localData.length - transactionsToMigrate.length} invalid transactions were skipped)` 
+          : ''
+      }`
     };
   } catch (error) {
     console.error('Error migrating localStorage data:', error);

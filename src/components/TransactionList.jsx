@@ -30,34 +30,52 @@ const TransactionList = ({ transactions, type, onRemove, onToggleStatus }) => {
           <tbody>
             {transactions
               .sort((a, b) => createLocalDate(a.date) - createLocalDate(b.date))
-              .map((t) => (
-                <tr key={t.id} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-150 ease-in-out">
-                  <td className="py-2 px-3 text-sm text-gray-700 dark:text-gray-300 font-medium">{formatDate(t.date)}</td>
-                  <td className="py-2 px-3 text-sm text-gray-700 dark:text-gray-300 truncate md:max-w-2xs">
-                    {t.description}
-                    {t.category && <span className="ml-2 inline-block px-2 text-xs rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">({t.category})</span>}
-                  </td>
-                  <td className={`py-2 px-3 text-sm font-semibold text-right ${colorClass}`}>{formatCurrency(t.amount)}</td>
-                  <td className="py-2 px-3 text-center">
-                    <div className="flex items-center justify-center space-x-2">
-                      <button
-                        onClick={() => onToggleStatus(t.id)}
-                        className={`p-1 rounded-full ${t.status === 'done' ? 'text-indigo-500 bg-indigo-100 dark:bg-indigo-900/50' : 'text-gray-400 hover:text-indigo-500 hover:bg-indigo-100/50 dark:hover:bg-indigo-900/50'} transition`}
-                        title={t.status === 'done' ? 'Mark as Pending' : 'Mark as Done'}
-                      >
-                        {t.status === 'done' ? <Check size={16} /> : <Circle size={16} />}
-                      </button>
-                      <button
-                        onClick={() => onRemove(t.id)}
-                        className="p-1 rounded-full text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-100/50 dark:hover:bg-red-900/50 transition"
-                        title="Delete Transaction"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              .map((t) => {
+                // Debug duplicate keys
+                const duplicateCount = transactions.filter(trans => trans.id === t.id).length;
+                if (duplicateCount > 1) {
+                  console.error(`🔴 Duplicate key detected: ${t.id} appears ${duplicateCount} times`);
+                }
+                
+                return (
+                  <tr 
+                    key={t.id} 
+                    className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-150 ease-in-out"
+                  >
+                    <td className="py-2 px-3 text-sm text-gray-700 dark:text-gray-300 font-medium">
+                      <div className="flex items-center gap-2">
+                        {formatDate(t.date)}
+                        <span className="text-xs text-gray-400">({t.id.slice(-8)})</span>
+                      </div>
+                    </td>
+                    <td className="py-2 px-3 text-sm text-gray-700 dark:text-gray-300 truncate md:max-w-2xs">
+                      {t.description}
+                      {t.category && <span className="ml-2 inline-block px-2 text-xs rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">({t.category})</span>}
+                    </td>
+                    <td className={`py-2 px-3 text-sm font-semibold text-right ${colorClass}`}>
+                      {formatCurrency(t.amount)}
+                    </td>
+                    <td className="py-2 px-3 text-center">
+                      <div className="flex items-center justify-center space-x-2">
+                        <button
+                          onClick={() => onToggleStatus(t.id)}
+                          className={`p-1 rounded-full ${t.status === 'done' ? 'text-indigo-500 bg-indigo-100 dark:bg-indigo-900/50' : 'text-gray-400 hover:text-indigo-500 hover:bg-indigo-100/50 dark:hover:bg-indigo-900/50'} transition`}
+                          title={t.status === 'done' ? 'Mark as Pending' : 'Mark as Done'}
+                        >
+                          {t.status === 'done' ? <Check size={16} /> : <Circle size={16} />}
+                        </button>
+                        <button
+                          onClick={() => onRemove(t.id)}
+                          className="p-1 rounded-full text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-100/50 dark:hover:bg-red-900/50 transition"
+                          title="Delete Transaction"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
           </tbody>
         </table>
       </div>

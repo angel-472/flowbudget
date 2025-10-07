@@ -1,17 +1,19 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import './App.css';
-import { Home, Sun, Moon } from 'lucide-react';
+import { Home, Sun, Moon, LogOut } from 'lucide-react';
 import {
   fetchOrCreateMonthBudget,
   addTransaction,
   deleteTransaction,
   toggleTransactionStatus
 } from './budgetApi';
-import { calculateWeeklyTotals } from './utils';
+import { calculateWeeklyTotals, getWeekNumber, getWeekDateRange, createLocalDate } from './utils';
 import MonthView from './components/MonthView';
 import Dashboard from './components/Dashboard';
+import CacheStatus from './components/CacheStatus';
 import './migration'; // Import migration tool for development
 import './dbTest'; // Import database test utilities
+import { signOut } from './auth'; // Import sign-out function
 
 function App({ user }) {
   // User is now passed from AuthWrapper
@@ -26,6 +28,8 @@ function App({ user }) {
   // App State
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  // Cache for storing month data to avoid re-fetching
+  const [budgetCache, setBudgetCache] = useState(new Map());
   const [darkMode, setDarkMode] = useState(() => {
     const storedMode = localStorage.getItem('darkMode');
     if (storedMode !== null) return JSON.parse(storedMode);
@@ -33,30 +37,79 @@ function App({ user }) {
   });
   // Toggle Dark Mode
   const toggleDarkMode = () => {
-    setDarkMode(prev => {
-      const newMode = !prev;
-      localStorage.setItem('darkMode', newMode);
+    setDarkMode(prevMode => {
+      const newMode = !prevMode;
+      localStorage.setItem('darkMode', JSON.stringify(newMode));
       return newMode;
     });
   };
+
+  // Cache management functions
+  const getCacheKey = useCallback((userId, year, month) => `${userId}-${year}-${month}`, []);
+  
+  const getCachedData = useCallback((userId, year, month) => {
+    const key = getCacheKey(userId, year, month);
+    return budgetCache.get(key);
+  }, [budgetCache, getCacheKey]);
+  
+  const setCachedData = useCallback((userId, year, month, data) => {
+    setBudgetCache(prev => {
+      const newCache = new Map(prev);
+      const key = getCacheKey(userId, year, month);
+      newCache.set(key, {
+        data,
+        timestamp: Date.now(),
+        expiresAt: Date.now() + (5 * 60 * 1000) // Cache for 5 minutes
+      });
+      return newCache;
+    });
+  }, [getCacheKey]);
+  
+  const isCacheValid = useCallback((cacheEntry) => {
+    return cacheEntry && Date.now() < cacheEntry.expiresAt;
+  }, []);
   // User is authenticated through AuthWrapper
-  // Effect to handle month change and fetch/create budget data
+  // Effect to handle month change and fetch/create budget data with caching
   const fetchBudget = useCallback(async (year, month) => {
     if (!user) return;
     setLoading(true);
     setError(null);
     try {
-      // Fetch Current Month Budget
-      const weeks = await fetchOrCreateMonthBudget(year, month, user.id);
+      // Check cache for current month first
+      const currentCacheEntry = getCachedData(user.id, year, month);
+      let weeks;
+      
+      if (isCacheValid(currentCacheEntry)) {
+        console.log(`🎯 Cache HIT for ${year}-${month} (age: ${Math.floor((Date.now() - currentCacheEntry.timestamp) / 1000)}s)`);
+        weeks = currentCacheEntry.data;
+      } else {
+        console.log(`📡 Cache MISS for ${year}-${month} - fetching from database`);
+        weeks = await fetchOrCreateMonthBudget(year, month, user.id);
+        setCachedData(user.id, year, month, weeks);
+        console.log(`💾 Cached data for ${year}-${month}`);
+      }
       setTransactions(weeks);
-      // Fetch Previous Month Budget for Dashboard Comparison
+      
+      // Handle previous month with caching
       let prevYear = year;
       let prevMonth = month - 1;
       if (prevMonth < 0) {
         prevMonth = 11;
         prevYear -= 1;
       }
-      const prevWeeks = await fetchOrCreateMonthBudget(prevYear, prevMonth, user.id);
+      
+      const prevCacheEntry = getCachedData(user.id, prevYear, prevMonth);
+      let prevWeeks;
+      
+      if (isCacheValid(prevCacheEntry)) {
+        console.log(`🎯 Cache HIT for previous month ${prevYear}-${prevMonth} (age: ${Math.floor((Date.now() - prevCacheEntry.timestamp) / 1000)}s)`);
+        prevWeeks = prevCacheEntry.data;
+      } else {
+        console.log(`📡 Cache MISS for previous month ${prevYear}-${prevMonth} - fetching from database`);
+        prevWeeks = await fetchOrCreateMonthBudget(prevYear, prevMonth, user.id);
+        setCachedData(user.id, prevYear, prevMonth, prevWeeks);
+        console.log(`💾 Cached data for previous month ${prevYear}-${prevMonth}`);
+      }
       setPrevTransactions(prevWeeks || []);
     } catch (error) {
       console.error('Error fetching budget data:', error);
@@ -64,7 +117,7 @@ function App({ user }) {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, getCachedData, setCachedData, isCacheValid]);
   useEffect(() => {
     if (user) {
       fetchBudget(currentYear, currentMonth);
@@ -104,35 +157,183 @@ function App({ user }) {
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
     } else {
       document.documentElement.classList.remove('dark');
+      document.documentElement.classList.add('light');
     }
   }, [darkMode]);
-  // Add transaction handler
+
+  // Optimistic update helper functions
+  const updateTransactionsOptimistically = (updater) => {
+    setTransactions(prevTransactions => {
+      const newTransactions = [...prevTransactions];
+      return updater(newTransactions);
+    });
+  };
+
+  const addTransactionToWeek = (weekTransactions, newTransaction) => {
+    console.log(`🔍 addTransactionToWeek called with:`, newTransaction.id, newTransaction.type);
+    const targetWeekNumber = getWeekNumber(createLocalDate(newTransaction.date));
+    const targetWeek = weekTransactions.find(week => week.weekNumber === targetWeekNumber);
+    
+    if (targetWeek) {
+      // Add to existing week
+      if (newTransaction.type === 'incomes') {
+        console.log(`📥 Adding to incomes array in week ${targetWeekNumber}`);
+        targetWeek.incomes.push(newTransaction);
+      } else {
+        console.log(`📤 Adding to expenses array in week ${targetWeekNumber}`);
+        targetWeek.expenses.push(newTransaction);
+      }
+    } else {
+      // Create new week structure if needed
+      const { start, end } = getWeekDateRange(new Date(newTransaction.date).getFullYear(), targetWeekNumber);
+      const dateRange = `${start.getDate()} ${start.toLocaleString('en-US', { month: 'short' })} – ${end.getDate()} ${end.toLocaleString('en-US', { month: 'short' })}`;
+      
+      const newWeek = {
+        weekNumber: targetWeekNumber,
+        dateRange: dateRange,
+        startDate: start.toISOString(),
+        endDate: end.toISOString(),
+        incomes: newTransaction.type === 'incomes' ? [newTransaction] : [],
+        expenses: newTransaction.type === 'expenses' ? [newTransaction] : []
+      };
+      
+      weekTransactions.push(newWeek);
+      weekTransactions.sort((a, b) => a.weekNumber - b.weekNumber);
+    }
+    
+    return weekTransactions;
+  };
+
+  const removeTransactionFromWeek = (weekTransactions, transactionId) => {
+    weekTransactions.forEach(week => {
+      week.incomes = week.incomes.filter(t => t.id !== transactionId);
+      week.expenses = week.expenses.filter(t => t.id !== transactionId);
+    });
+    return weekTransactions;
+  };
+
+  const updateTransactionInWeek = (weekTransactions, transactionId, updater) => {
+    weekTransactions.forEach(week => {
+      week.incomes = week.incomes.map(t => t.id === transactionId ? updater(t) : t);
+      week.expenses = week.expenses.map(t => t.id === transactionId ? updater(t) : t);
+    });
+    return weekTransactions;
+  };
+  
+  // Add transaction handler - simplified without optimistic updates
+  const [isAddingTransaction, setIsAddingTransaction] = useState(false);
+  
   const handleAddTransaction = async (newTransaction) => {
+    if (isAddingTransaction) {
+      console.warn('⚠️ Transaction already being added, ignoring duplicate call');
+      return;
+    }
+    
+    setIsAddingTransaction(true);
+    console.log('🚀 Starting to add transaction:', newTransaction);
+    
     try {
-      await addTransaction(newTransaction, user.id);
-      await fetchBudget(currentYear, currentMonth); // Refresh current view
-    } catch (e) {
-      setError(e.message);
+      // Send to database first
+      const savedTransaction = await addTransaction(newTransaction, user.id);
+      console.log('💾 Got saved transaction from DB:', savedTransaction.id);
+      
+      // Check if transaction already exists before adding
+      const existingTransaction = transactions.some(week => 
+        week.incomes.some(t => t.id === savedTransaction.id) ||
+        week.expenses.some(t => t.id === savedTransaction.id)
+      );
+      
+      if (existingTransaction) {
+        console.warn('⚠️ Transaction already exists in UI, skipping add:', savedTransaction.id);
+        return;
+      }
+      
+      // Add the real transaction directly to UI
+      updateTransactionsOptimistically(weekTransactions => {
+        console.log('📝 Adding transaction to UI:', savedTransaction.id);
+        
+        // Final duplicate check at the array level
+        const alreadyExists = weekTransactions.some(week => 
+          week.incomes.some(t => t.id === savedTransaction.id) ||
+          week.expenses.some(t => t.id === savedTransaction.id)
+        );
+        
+        if (alreadyExists) {
+          console.warn(`⚠️ Transaction ${savedTransaction.id} already exists in weekTransactions, skipping add`);
+          return weekTransactions;
+        }
+        
+        return addTransactionToWeek(weekTransactions, savedTransaction);
+      });
+      
+      console.log('✅ Transaction added successfully:', savedTransaction.id);
+    } catch (error) {
+      setError(error.message);
+      console.error('❌ Failed to add transaction:', error);
+    } finally {
+      setIsAddingTransaction(false);
     }
   };
-  // Remove transaction handler
+  // Remove transaction handler with optimistic updates
   const handleRemoveTransaction = async (transactionId) => {
+    // Store the transaction for potential rollback
+    let removedTransaction = null;
+    let removedFromWeek = null;
+
+    // Find and store the transaction being removed
+    transactions.forEach(week => {
+      const foundIncome = week.incomes.find(t => t.id === transactionId);
+      const foundExpense = week.expenses.find(t => t.id === transactionId);
+      if (foundIncome) {
+        removedTransaction = foundIncome;
+        removedFromWeek = week;
+      } else if (foundExpense) {
+        removedTransaction = foundExpense;
+        removedFromWeek = week;
+      }
+    });
+
+    // Optimistic update - remove immediately from UI
+    updateTransactionsOptimistically(weekTransactions => 
+      removeTransactionFromWeek(weekTransactions, transactionId)
+    );
+
     try {
-      await deleteTransaction(transactionId, user.id);
-      await fetchBudget(currentYear, currentMonth); // Refresh current view
-    } catch (e) {
-      setError(e.message);
+      // Send delete request to database
+      await deleteTransaction(transactionId);
+      
+      console.log(`✅ Transaction deleted successfully - using optimistic update only`);
+    } catch (error) {
+      // Rollback optimistic update on error
+      if (removedTransaction && removedFromWeek) {
+        updateTransactionsOptimistically(weekTransactions => 
+          addTransactionToWeek(weekTransactions, removedTransaction)
+        );
+      }
+      setError(error.message);
     }
   };
-  // Toggle transaction status handler
+  // Toggle transaction status handler - simplified without optimistic updates
   const handleToggleStatus = async (transactionId) => {
     try {
-      await toggleTransactionStatus(transactionId, user.id);
-      await fetchBudget(currentYear, currentMonth); // Refresh current view
-    } catch (e) {
-      setError(e.message);
+      // Send update to database
+      const updatedTransaction = await toggleTransactionStatus(transactionId);
+      
+      // Update with real data from database
+      updateTransactionsOptimistically(weekTransactions => 
+        updateTransactionInWeek(weekTransactions, transactionId, (transaction) => ({
+          ...transaction,
+          ...updatedTransaction
+        }))
+      );
+      
+      console.log(`✅ Transaction status updated successfully:`, transactionId);
+    } catch (error) {
+      setError(error.message);
+      console.error('Failed to toggle transaction status:', error);
     }
   };
   // Authentication is handled by AuthWrapper
@@ -140,19 +341,33 @@ function App({ user }) {
     <div className={`min-h-screen ${darkMode ? 'dark' : ''}`}>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-200 transition-colors duration-300">
         <header className="sticky top-0 z-20 bg-white dark:bg-gray-800 shadow-md">
-          <div className="mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
-            <h1 className="text-2xl font-black text-indigo-600 dark:text-indigo-400">FlowBudget</h1>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:inline">{user.email}</span>
-              <button
-                onClick={toggleDarkMode}
-                className="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-                title="Toggle Dark Mode"
-              >
-                {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-              </button>
+          <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-4 py-3 transition-colors duration-300">
+                  <div className="flex justify-between items-center">
+                    <h1 className="text-xl font-black text-indigo-600 dark:text-indigo-400">FlowBudget</h1>
+                    <div className="flex items-center space-x-4">
+                      <CacheStatus 
+                        budgetCache={budgetCache} 
+                        user={user} 
+                        currentYear={currentYear} 
+                        currentMonth={currentMonth} 
+                      />
+                      <span className="text-sm text-gray-600 dark:text-gray-500 hidden md:block">{user.email}</span>
+                      <button
+                        onClick={toggleDarkMode}
+                        className="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
+                        title="Toggle Dark Mode"
+                      >
+                        {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+                      </button>
+                      <button
+                        onClick={signOut}
+                        className="text-sm text-red-600 dark:text-red-400 hover:text-red-500 dark:hover:text-red-300 font-semibold px-3 py-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200"
+                      >
+                        <LogOut size={18} />
+                      </button>
+                    </div>
+                </div>
             </div>
-          </div>
         </header>
         <div className="flex flex-col md:flex-row mx-auto">
           <nav className="md:w-64 bg-white dark:bg-gray-800 md:h-screen md:sticky top-16 p-4 border-b md:border-b-0 md:border-r border-gray-100 dark:border-gray-700/50 shadow-lg md:shadow-none overflow-x-auto overflow-y-auto">

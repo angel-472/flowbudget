@@ -48,7 +48,7 @@ const TransactionForm = ({ currentMonth, currentYear, currentWeekNumber, onAdd, 
       date,
       description,
       amount: parsedAmount,
-      category: category || null,
+      category: category || "",
       status: 'pending',
       type: type, // Add type to the transaction object
     };
