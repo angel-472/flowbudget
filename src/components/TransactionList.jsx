@@ -45,7 +45,6 @@ const TransactionList = ({ transactions, type, onRemove, onToggleStatus }) => {
                     <td className="py-2 px-3 text-sm text-gray-700 dark:text-gray-300 font-medium">
                       <div className="flex items-center gap-2">
                         {formatDate(t.date)}
-                        <span className="text-xs text-gray-400">({t.id.slice(-8)})</span>
                       </div>
                     </td>
                     <td className="py-2 px-3 text-sm text-gray-700 dark:text-gray-300 truncate md:max-w-2xs">

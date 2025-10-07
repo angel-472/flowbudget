@@ -46,7 +46,7 @@ const MonthView = ({ transactions, loading, error, currentMonth, currentYear, se
           </button>
         </div>
       </header>
-      {loading && <p className="text-center text-indigo-600 dark:text-indigo-400 text-lg py-12">Loading or generating budget...</p>}
+      {loading && <p className="text-center text-gray-600 dark:text-gray-400 text-lg py-12">Loading month data...</p>}
       {error && <p className="text-center text-red-600 dark:text-red-400 text-lg py-12">Error: {error}</p>}
       {!loading && !error && (
         <div className="space-y-8">
