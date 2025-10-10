@@ -60,7 +60,7 @@ const MonthView = ({ transactions, loading, error, currentMonth, currentYear, se
               setError={setError}
             />
           ))}
-          <footer className="mt-10 p-6 bg-indigo-50 dark:bg-gray-900/50 rounded-xl shadow-xl border-t-4 border-indigo-500 sticky bottom-0 z-10">
+          <footer className="mt-10 p-6 bg-indigo-50 dark:bg-gray-900/50 rounded-xl shadow-xl border-t-4 border-indigo-500 bottom-0 z-10">
             <h3 className="text-2xl font-extrabold text-indigo-700 dark:text-indigo-400 mb-4">Monthly Summary</h3>
             <div className="grid grid-cols-3 gap-4 text-center">
               <div className="p-3 bg-white dark:bg-gray-800 rounded-xl shadow-inner">

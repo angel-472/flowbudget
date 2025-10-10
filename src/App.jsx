@@ -167,25 +167,28 @@ function App({ user }) {
   // Optimistic update helper functions
   const updateTransactionsOptimistically = (updater) => {
     setTransactions(prevTransactions => {
-      const newTransactions = [...prevTransactions];
-      return updater(newTransactions);
+      // The updater function is now responsible for returning a new array
+      return updater(prevTransactions);
     });
   };
 
   const addTransactionToWeek = (weekTransactions, newTransaction) => {
     console.log(`🔍 addTransactionToWeek called with:`, newTransaction.id, newTransaction.type);
     const targetWeekNumber = getWeekNumber(createLocalDate(newTransaction.date));
-    const targetWeek = weekTransactions.find(week => week.weekNumber === targetWeekNumber);
     
-    if (targetWeek) {
-      // Add to existing week
-      if (newTransaction.type === 'incomes') {
-        console.log(`📥 Adding to incomes array in week ${targetWeekNumber}`);
-        targetWeek.incomes.push(newTransaction);
-      } else {
-        console.log(`📤 Adding to expenses array in week ${targetWeekNumber}`);
-        targetWeek.expenses.push(newTransaction);
+    let weekExists = false;
+    const newWeeks = weekTransactions.map(week => {
+      if (week.weekNumber === targetWeekNumber) {
+        weekExists = true;
+        const newIncomes = newTransaction.type === 'incomes' ? [...week.incomes, newTransaction] : [...week.incomes];
+        const newExpenses = newTransaction.type === 'expenses' ? [...week.expenses, newTransaction] : [...week.expenses];
+        return { ...week, incomes: newIncomes, expenses: newExpenses };
       }
+      return week;
+    });
+
+    if (weekExists) {
+      return newWeeks;
     } else {
       // Create new week structure if needed
       const { start, end } = getWeekDateRange(new Date(newTransaction.date).getFullYear(), targetWeekNumber);
@@ -200,27 +203,49 @@ function App({ user }) {
         expenses: newTransaction.type === 'expenses' ? [newTransaction] : []
       };
       
-      weekTransactions.push(newWeek);
-      weekTransactions.sort((a, b) => a.weekNumber - b.weekNumber);
+      const allWeeks = [...weekTransactions, newWeek];
+      allWeeks.sort((a, b) => a.weekNumber - b.weekNumber);
+      return allWeeks;
     }
-    
-    return weekTransactions;
   };
 
   const removeTransactionFromWeek = (weekTransactions, transactionId) => {
-    weekTransactions.forEach(week => {
-      week.incomes = week.incomes.filter(t => t.id !== transactionId);
-      week.expenses = week.expenses.filter(t => t.id !== transactionId);
+    return weekTransactions.map(week => {
+      const newIncomes = week.incomes.filter(t => t.id !== transactionId);
+      const newExpenses = week.expenses.filter(t => t.id !== transactionId);
+      
+      // If the transaction was in this week, return a new week object
+      if (newIncomes.length < week.incomes.length || newExpenses.length < week.expenses.length) {
+        return { ...week, incomes: newIncomes, expenses: newExpenses };
+      }
+      
+      return week; // Otherwise, return the original week object
     });
-    return weekTransactions;
   };
 
   const updateTransactionInWeek = (weekTransactions, transactionId, updater) => {
-    weekTransactions.forEach(week => {
-      week.incomes = week.incomes.map(t => t.id === transactionId ? updater(t) : t);
-      week.expenses = week.expenses.map(t => t.id === transactionId ? updater(t) : t);
+    return weekTransactions.map(week => {
+      let changed = false;
+      const newIncomes = week.incomes.map(t => {
+        if (t.id === transactionId) {
+          changed = true;
+          return updater(t);
+        }
+        return t;
+      });
+      const newExpenses = week.expenses.map(t => {
+        if (t.id === transactionId) {
+          changed = true;
+          return updater(t);
+        }
+        return t;
+      });
+
+      if (changed) {
+        return { ...week, incomes: newIncomes, expenses: newExpenses };
+      }
+      return week;
     });
-    return weekTransactions;
   };
   
   // Add transaction handler - simplified without optimistic updates
@@ -263,7 +288,7 @@ function App({ user }) {
         
         if (alreadyExists) {
           console.warn(`⚠️ Transaction ${savedTransaction.id} already exists in weekTransactions, skipping add`);
-          return weekTransactions;
+          return weekTransactions; // Return original state
         }
         
         return addTransactionToWeek(weekTransactions, savedTransaction);
