@@ -3,6 +3,7 @@
     import MonthView from "./components/MonthView.svelte";
     import AuthScreen from "./components/AuthScreen.svelte";
     import { getCurrentUserId } from "./api/supabaseClient";
+    import { onAuthStateChange, signOut } from "./api/auth";
 
   //
   // Dark mode state management
@@ -31,7 +32,9 @@
     }
   };
 
-
+  // 
+  // User authentication state
+  // 
   let userId = $state(null); // Placeholder user ID
   getCurrentUserId().then(id => {
     userId = id;
@@ -39,6 +42,21 @@
   });
   let currentView = $state("month"); // Possible values: "month", "dashboard", "settings"
 
+  onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN') {
+      userId = session.user.id;
+      console.log("User signed in:", userId);
+    } else if (event === 'SIGNED_OUT') {
+      userId = null;
+      console.log("User signed out");
+    }
+  });
+
+  async function handleSignOut() {
+    await signOut();
+    userId = null;
+    console.log("User signed out");
+  }
 </script>
 
 {#if !userId}
@@ -64,6 +82,8 @@
         </button>
         <button
           class="text-sm text-red-600 dark:text-red-400 hover:text-red-500 dark:hover:text-red-300 font-semibold p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200"
+          onclick={handleSignOut}
+          title="Sign Out"
         >
           <LogOut size={18} />
         </button>

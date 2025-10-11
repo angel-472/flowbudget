@@ -1,36 +1,53 @@
 <script>
-        import { Sun, Moon, Mail, Lock, EyeOff, Eye, UserPlus, LogIn } from 'lucide-svelte';
+  import { Sun, Moon, Mail, Lock, EyeOff, Eye, UserPlus, LogIn } from 'lucide-svelte';
+  import { signIn, signUp } from '/src/api/auth.js';
 
-        let darkMode = $state(false);
-        let isSignUp = $state(false);
-        let email = $state('');
-        let password = $state('');
-        let showPassword = $state(false);
-        let confirmPassword = $state('');
-        let showConfirmPassword = $state(false);
-        let error = $state('');
-        let isSubmitting = $state(false);
+  let isSignUp = $state(false);
+  let email = $state('');
+  let password = $state('');
+  let showPassword = $state(false);
+  let confirmPassword = $state('');
+  let showConfirmPassword = $state(false);
+  let error = $state('');
+  let isSubmitting = $state(false);
+
+  //Handle submit
+  async function handleSubmit() {
+    isSubmitting = true;
+    error = '';
+
+    try {
+      if (isSignUp) {
+        // Sign up logic
+        if (password !== confirmPassword) {
+          error = 'Passwords do not match.';
+          isSubmitting = false;
+          return;
+        }
+        let result = await signUp(email, password);
+        console.log(`Sign up result: `, result);
+      } else {
+        // Sign in logic
+        let result = await signIn(email, password);
+        console.log(`Sign in result: `, result);
+      }
+    } catch (err) {
+      error = 'An error occurred. Please try again.';
+      if(err.message.includes('Invalid login credentials')) {
+        error = 'Invalid email or password. Please try again.';
+      }
+      else if(err.message.includes('Email not confirmed')) {
+        error = 'Your email is not confirmed. Please check your inbox before signing in.';
+      }
+    } finally {
+      isSubmitting = false;
+    }
+  }
 </script>
 
 
-<div class={`min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-cyan-50 dark:from-gray-900 dark:via-gray-900 dark:to-indigo-950 transition-colors duration-300 ${darkMode ? 'dark' : ''}`}>
+<div class={`min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-cyan-50 dark:from-gray-900 dark:via-gray-900 dark:to-indigo-950 transition-colors duration-300 `}>
   <div class="max-w-md w-full mx-4">
-    <!-- Dark Mode Toggle -->
-    <div class="flex justify-end mb-6">
-      <button
-        onclick={() => darkMode = !darkMode}
-        class="p-3 rounded-full bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200"
-        title="Toggle Dark Mode"
-      >
-        <!-- toggleDarkMode -->
-        {#if darkMode}
-          <Sun size={20} />
-        {:else}
-          <Moon size={20} />
-        {/if}
-      </button>
-    </div>
-
     <!-- Auth Card -->
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
       <!-- Header -->
@@ -47,7 +64,7 @@
 
       <!-- Form -->
       <div class="px-8 py-8">
-        <form onsubmit={(e) => {e.preventDefault(); /* handleAuth */ }} class="space-y-6">
+        <form onsubmit={(e) => {e.preventDefault(); handleSubmit(); }} class="space-y-6">
           <!-- Email Field -->
           <div>
             <label for="email" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
@@ -118,7 +135,7 @@
                   bind:value={confirmPassword}
                   class="w-full pl-10 pr-12 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 placeholder-gray-400 dark:placeholder-gray-500"
                   placeholder="Confirm your password"
-                  autocomplete="new-password"
+                  autocomplete="confirm-password"
                 />
                 <button
                   type="button"
@@ -146,7 +163,7 @@
           <button
             type="submit"
             disabled={isSubmitting}
-            class="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-xl shadow-lg text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
+            class="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-xl shadow-lg text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.01] active:scale-[0.98]"
           >
             {#if isSubmitting}
               <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>

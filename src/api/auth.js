@@ -41,7 +41,7 @@ export async function signIn(email, password) {
     if (error) throw error;
     return data;
   } catch (error) {
-    console.error('Error signing in:', error);
+    console.error('FlowBudget Auth: Error signing in:', error);
     throw error;
   }
 }
