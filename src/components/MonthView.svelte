@@ -1,6 +1,6 @@
 <script>
   import { ChevronLeft, ChevronRight } from 'lucide-svelte';
-  import { budgetApi } from '../api/budgetApi.svelte';
+  import { budgetApi } from '../api/budgetApi
   
   // Mock state variables
   let currentMonth = $state(new Date().getMonth());

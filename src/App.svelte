@@ -12,11 +12,15 @@
   // Check localStorage or system preference for initial dark mode value
   if (localStorage.getItem('darkMode') !== null) {
     darkMode = localStorage.getItem('darkMode') === 'true';
+    // svelte-ignore state_referenced_locally
     document.documentElement.classList.toggle('dark', darkMode);
+    // svelte-ignore state_referenced_locally
     console.log(`${darkMode ? '🌙' : '☀️'} Dark mode from localStorage: ${darkMode ? 'Enabled' : 'Disabled'}`);
   } else {
     darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    // svelte-ignore state_referenced_locally
     document.documentElement.classList.toggle('dark', darkMode);
+    // svelte-ignore state_referenced_locally
     console.log(`${darkMode ? '🌙' : '☀️'} System preference for dark mode: ${darkMode ? 'Enabled' : 'Disabled'}`);
   }
 

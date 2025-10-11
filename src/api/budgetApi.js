@@ -1,4 +1,4 @@
-import { supabase, handleSupabaseError, getCurrentUserId } from './supabaseClient.js';
+import { supabase, handleSupabaseError} from './supabaseClient.js';
 
 console.log('🧳 Budget API initialized');
 
