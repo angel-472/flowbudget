@@ -50,9 +50,11 @@
 
   onAuthStateChange((event, session) => {
     if (event === 'SIGNED_IN') {
+      user = session.user;
       userId = session.user.id;
       console.log("User signed in:", userId);
     } else if (event === 'SIGNED_OUT') {
+      user = null;
       userId = null;
       console.log("User signed out");
     }
@@ -72,7 +74,7 @@
   </div>
 {:else if !user}
   <AuthScreen />
-{:else if !isLoading}
+{:else}
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
     <header class="sticky top-0 z-20 bg-white dark:bg-gray-800 shadow-md px-4 py-2 flex items-center justify-between">
       <!-- App Name -->
