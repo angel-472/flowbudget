@@ -39,7 +39,7 @@
           >
             <ChevronLeft size={24} />
           </button>
-          <h2 class="text-3xl font-extrabold transition duration-0 w-70 text-center {currentMonth == new Date().getMonth() && currentYear == new Date().getFullYear() ? 'text-indigo-500 dark:text-indigo-400' : 'text-gray-900 dark:text-white'}">
+          <h2 class="text-3xl font-extrabold transition duration-0 w-70 text-center {currentMonth == new Date().getMonth() && currentYear == new Date().getFullYear() ? 'bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent' : 'text-gray-900 dark:text-white'}">
             {monthName} {currentYear}
           </h2>
           <button

@@ -76,29 +76,38 @@
   <AuthScreen />
 {:else}
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-    <header class="sticky top-0 z-20 bg-white dark:bg-gray-800 shadow-md px-4 py-2 flex items-center justify-between">
+    <header class="sticky top-0 z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md shadow-lg px-5 py-3 flex items-center justify-between border-b border-gray-200/30 dark:border-gray-700/30">
       <!-- App Name -->
-      <h1 class="text-xl font-black text-indigo-600 dark:text-indigo-400">FlowBudget</h1>
-      <!-- Future navigation or user profile elements can go here -->
-      <div class="flex items-center gap-2">
-        <span class="text-sm text-gray-600 dark:text-gray-500 hidden md:block">{user.email}</span>
+      <h1 class="text-xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">FlowBudget</h1>
+      
+      <!-- Header options -->
+      <div class="flex items-center gap-3">
+        <!-- User email -->
+        <div class="hidden md:flex items-center px-4 py-1.5 rounded-full bg-gray-50/70 dark:bg-gray-700/50 border border-gray-200/50 dark:border-gray-600/30 shadow-sm backdrop-blur-sm">
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{user.email}</span>
+        </div>
+        
+        <!-- Dark mode toggle -->
         <button
           onclick={toggleDarkMode}
-          class="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
+          class="p-2 rounded-full text-gray-700 dark:text-gray-200 hover:bg-gray-100/70 dark:hover:bg-gray-700/70 transition-all duration-300 shadow-sm border border-gray-200/50 dark:border-gray-600/30 backdrop-blur-sm"
           title="Toggle Dark Mode"
         >
           {#if darkMode}
-            <Sun width={18} height={18} />
+            <Sun width={18} height={18} class="drop-shadow-sm" />
           {:else}
-            <Moon width={18} height={18} />
+            <Moon width={18} height={18} class="drop-shadow-sm" />
           {/if}
         </button>
+        
+        <!-- Sign out button -->
         <button
-          class="text-sm text-red-600 dark:text-red-400 hover:text-red-500 dark:hover:text-red-300 font-semibold p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200"
+          class="flex items-center gap-1.5 text-sm text-red-600 dark:text-red-400 hover:text-red-500 dark:hover:text-red-300 font-medium py-1.5 px-3 rounded-lg hover:bg-red-50/70 dark:hover:bg-red-900/30 transition-all duration-300 shadow-sm border border-red-200/50 dark:border-red-800/30 backdrop-blur-sm"
           onclick={handleSignOut}
           title="Sign Out"
         >
-          <LogOut size={18} />
+          <LogOut size={18} class="drop-shadow-sm" />
+          <span class="hidden sm:inline">Sign Out</span>
         </button>
       </div>
     </header>
