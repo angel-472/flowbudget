@@ -2,8 +2,7 @@
   import { Moon, Sun, LogOut } from "lucide-svelte"
     import MonthView from "./components/MonthView.svelte";
     import AuthScreen from "./components/AuthScreen.svelte";
-    import { getCurrentUserId } from "./api/supabaseClient";
-    import { onAuthStateChange, signOut } from "./api/auth";
+    import { getCurrentUser, onAuthStateChange, signOut } from "./api/auth";
 
   //
   // Dark mode state management
@@ -35,10 +34,13 @@
   // 
   // User authentication state
   // 
-  let userId = $state(null); // Placeholder user ID
-  getCurrentUserId().then(id => {
-    userId = id;
-    console.log("User ID:", userId);
+  let user = $state(null);
+  let userId = $derived(user ? user.id : null);
+  let isLoading = $state(true);
+  getCurrentUser().then(currentUser => {
+    user = currentUser;
+    isLoading = false;
+    console.log("User ID:", userId, user);
   });
   let currentView = $state("month"); // Possible values: "month", "dashboard", "settings"
 
@@ -59,16 +61,21 @@
   }
 </script>
 
-{#if !userId}
+<!-- TODO: Show something while isLoading -->
+{#if isLoading}
+  <div class="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 dark:border-indigo-400"></div>
+  </div>
+{:else if !user}
   <AuthScreen />
-{:else}
+{:else if !isLoading}
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
     <header class="sticky top-0 z-20 bg-white dark:bg-gray-800 shadow-md px-4 py-2 flex items-center justify-between">
       <!-- App Name -->
       <h1 class="text-xl font-black text-indigo-600 dark:text-indigo-400">FlowBudget</h1>
       <!-- Future navigation or user profile elements can go here -->
       <div class="flex items-center gap-2">
-        <span class="text-sm text-gray-600 dark:text-gray-500 hidden md:block">{userId}</span>
+        <span class="text-sm text-gray-600 dark:text-gray-500 hidden md:block">{user.email}</span>
         <button
           onclick={toggleDarkMode}
           class="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
