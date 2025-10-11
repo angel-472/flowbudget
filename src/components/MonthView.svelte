@@ -1,6 +1,6 @@
 <script>
   import { ChevronLeft, ChevronRight } from 'lucide-svelte';
-  import { budgetApi } from '../api/budgetApi
+  import { budgetApi } from '/src/api/budgetApi.js';
   
   // Mock state variables
   let currentMonth = $state(new Date().getMonth());
@@ -39,7 +39,7 @@
           >
             <ChevronLeft size={24} />
           </button>
-          <h2 class="text-3xl font-extrabold transition duration-0 {currentMonth == new Date().getMonth() && currentYear == new Date().getFullYear() ? 'text-indigo-500 dark:text-indigo-400' : 'text-gray-900 dark:text-white'}">
+          <h2 class="text-3xl font-extrabold transition duration-0 w-70 text-center {currentMonth == new Date().getMonth() && currentYear == new Date().getFullYear() ? 'text-indigo-500 dark:text-indigo-400' : 'text-gray-900 dark:text-white'}">
             {monthName} {currentYear}
           </h2>
           <button

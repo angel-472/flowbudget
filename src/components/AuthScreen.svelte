@@ -1,6 +1,7 @@
 <script>
   import { Sun, Moon, Mail, Lock, EyeOff, Eye, UserPlus, LogIn } from 'lucide-svelte';
   import { signIn, signUp } from '/src/api/auth.js';
+  import AnimatedBackground from './AnimatedBackground.svelte';
 
   let isSignUp = $state(false);
   let email = $state('');
@@ -46,10 +47,13 @@
 </script>
 
 
-<div class={`min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-cyan-50 dark:from-gray-900 dark:via-gray-900 dark:to-indigo-950 transition-colors duration-300 `}>
-  <div class="max-w-md w-full mx-4">
+<div class="relative min-h-screen flex items-center justify-center transition-colors duration-300">
+  <!-- Animated Background Component -->
+  <AnimatedBackground theme="auto" />
+  
+  <div class="max-w-md w-full mx-4 relative z-10">
     <!-- Auth Card -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div class="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
       <!-- Header -->
       <div class="bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-700 dark:to-purple-700 px-8 py-8 text-center">
         <h1 class="text-3xl font-black text-white mb-2">FlowBudget</h1>
@@ -204,7 +208,7 @@
 
     <!-- Footer -->
     <div class="text-center mt-8">
-      <p class="text-sm text-gray-500 dark:text-gray-400">
+      <p class="text-sm text-gray-600 dark:text-gray-300 font-medium backdrop-blur-sm bg-white/30 dark:bg-gray-800/30 inline-block px-4 py-2 rounded-full">
         Effortlessly manage your weekly budget and cash flow.
       </p>
     </div>
