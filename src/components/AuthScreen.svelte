@@ -64,6 +64,7 @@
                 bind:value={email}
                 class="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 placeholder-gray-400 dark:placeholder-gray-500"
                 placeholder="Enter your email"
+                autocomplete="email"
               />
             </div>
           </div>
@@ -84,6 +85,7 @@
                 bind:value={password}
                 class="w-full pl-10 pr-12 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 placeholder-gray-400 dark:placeholder-gray-500"
                 placeholder="Enter your password"
+                autocomplete="current-password"
               />
               <button
                 type="button"
@@ -116,6 +118,7 @@
                   bind:value={confirmPassword}
                   class="w-full pl-10 pr-12 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 placeholder-gray-400 dark:placeholder-gray-500"
                   placeholder="Confirm your password"
+                  autocomplete="new-password"
                 />
                 <button
                   type="button"
@@ -185,7 +188,7 @@
     <!-- Footer -->
     <div class="text-center mt-8">
       <p class="text-sm text-gray-500 dark:text-gray-400">
-        Secure weekly budget tracking with Sunday-based weeks
+        Effortlessly manage your weekly budget and cash flow.
       </p>
     </div>
   </div>
