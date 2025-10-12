@@ -132,6 +132,7 @@
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Lock size={18} class="text-gray-400 dark:text-gray-500" />
                 </div>
+                <!-- svelte-ignore a11y_autocomplete_valid -->
                 <input
                   id="confirmPassword"
                   type={showConfirmPassword ? 'text' : 'password'}
