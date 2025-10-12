@@ -3,6 +3,7 @@
     import MonthView from "./components/MonthView.svelte";
     import AuthScreen from "./components/AuthScreen.svelte";
     import { getCurrentUser, onAuthStateChange, signOut } from "./api/auth";
+    import { signal } from "./api/signal";
 
   //
   // Dark mode state management
@@ -43,7 +44,7 @@
   let isLoading = $state(true);
   getCurrentUser().then(currentUser => {
     user = currentUser;
-    isLoading = false;
+    // isLoading = false; // wait for database sync instead
   });
   let currentView = $state("month"); // Possible values: "month", "dashboard", "settings"
 
@@ -64,6 +65,11 @@
     userId = null;
     console.log("User signed out");
   }
+
+
+    signal.sub("TRANSACTIONS_FETCH_ALL", "App.svelte", (data) => {
+      isLoading = false;
+    });
 </script>
 
 <!-- TODO: Show something while isLoading -->
