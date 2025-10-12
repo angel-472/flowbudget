@@ -46,7 +46,7 @@ class DateUtils {
     return dates;
   }
 
-  getWeeksinMonth(year, monthNumber) {
+  getWeeksInMonth(year, monthNumber) {
     const weeks = [];
     const monthStart = this.createLocalDate(`${year}-${monthNumber}-01`);
     const monthEnd = this.createLocalDate(`${year}-${monthNumber + 1}-01`);

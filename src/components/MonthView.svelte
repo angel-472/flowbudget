@@ -1,6 +1,8 @@
 <script>
   import { ChevronLeft, ChevronRight } from 'lucide-svelte';
   import { budgetApi } from '/src/api/budgetApi.js';
+  import { dateUtils } from '/src/api/dateUtils.js';
+  import WeekCard from './WeekCard.svelte';
   
   // Mock state variables
   let currentMonth = $state(new Date().getMonth());
@@ -27,6 +29,9 @@
       currentMonth++;
     }
   }
+
+  // Add 1 to currentMonth when passing to getWeeksInMonth since it expects 1-12 instead of 0-11)
+  let weeksInMonth = $derived(dateUtils.getWeeksInMonth(currentYear, currentMonth + 1));
 </script>
 
 <div class="flex-1 p-4 sm:p-6 lg:p-8">
@@ -34,7 +39,7 @@
     <div class="flex items-center space-x-4 justify-center w-full">
       <button
         onclick={selectPrevMonth}
-        class="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+        class="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition cursor-pointer"
         title="Previous Month"
       >
         <ChevronLeft size={24} />
@@ -44,7 +49,7 @@
       </h2>
       <button
         onclick={selectNextMonth}
-        class="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+        class="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition cursor-pointer"
         title="Next Month"
       >
         <ChevronRight size={24} />
@@ -52,7 +57,9 @@
     </div>
   </header>
   <!-- Week Cards -->
-  <div class="flex flex-col">
-
+  <div class="flex flex-col gap-8">
+    {#each weeksInMonth as weekNumber (weekNumber)}
+      <WeekCard {weekNumber} {currentMonth} {currentYear}/>
+    {/each}
   </div>
 </div>

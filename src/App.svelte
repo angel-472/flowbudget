@@ -89,7 +89,7 @@
         <!-- Dark mode toggle -->
         <button
           onclick={toggleDarkMode}
-          class="p-2 rounded-full text-gray-700 dark:text-gray-200 hover:bg-gray-100/70 dark:hover:bg-gray-700/70 transition-all duration-300 shadow-sm border border-gray-200/50 dark:border-gray-600/30 backdrop-blur-sm"
+          class="p-2 rounded-full text-gray-700 dark:text-gray-200 hover:bg-gray-100/70 dark:hover:bg-gray-700/70 transition-all duration-300 shadow-sm border border-gray-200/50 dark:border-gray-600/30 backdrop-blur-sm cursor-pointer"
           title="Toggle Dark Mode"
         >
           {#if darkMode}
@@ -101,7 +101,7 @@
         
         <!-- Sign out button -->
         <button
-          class="flex items-center gap-1.5 text-sm text-red-600 dark:text-red-400 hover:text-red-500 dark:hover:text-red-300 font-medium py-1.5 px-3 rounded-lg hover:bg-red-50/70 dark:hover:bg-red-900/30 transition-all duration-300 shadow-sm border border-red-200/50 dark:border-red-800/30 backdrop-blur-sm"
+          class="flex items-center gap-1.5 text-sm text-red-600 dark:text-red-400 hover:text-red-500 dark:hover:text-red-300 font-medium py-1.5 px-3 rounded-lg hover:bg-red-50/70 dark:hover:bg-red-900/30 transition-all duration-300 shadow-sm border border-red-200/50 dark:border-red-800/30 backdrop-blur-sm cursor-pointer"
           onclick={handleSignOut}
           title="Sign Out"
         >
