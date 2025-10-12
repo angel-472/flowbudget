@@ -6,6 +6,10 @@ class SignalManager {
     if(this.subs[signalName] == undefined){
       this.subs[signalName] = {};
     }
+    if( this.subs[signalName][id] !== undefined){
+      console.warn(`SignalManager: Tried to overwrite existing subscription for signal "${signalName}" with id "${id}" all callbacks must have unique ids - rejected.`);
+      return;
+    }
     this.subs[signalName][id] = callback;
   }
   unsub(signalName, id){
