@@ -4,7 +4,7 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 // Debug environment variables
-console.log('🔧 Environment Debug:', {
+console.log('🔧 Supabase Environment Debug:', {
   url: supabaseUrl ? '✅ URL loaded' : '❌ URL missing',
   key: supabaseAnonKey ? '✅ Key loaded' : '❌ Key missing',
   env: import.meta.env.MODE

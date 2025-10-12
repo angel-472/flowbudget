@@ -1,4 +1,15 @@
-console.log('🧳 Budget API initialized');
+console.log('🧳 Budget Data API initialized');
+
+// Polyfill to generate a UUID (if crypto.randomUUID is not available)
+if (!crypto.randomUUID) {
+  // @ts-ignore
+  crypto.randomUUID = function() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  };
+}
 
 class BudgetApi {
   constructor(){
@@ -34,13 +45,6 @@ class BudgetApi {
 
 export const budgetApi = new BudgetApi();
 
-// Polyfill to generate a UUID (if crypto.randomUUID is not available)
-if (!crypto.randomUUID) {
-  // @ts-ignore
-  crypto.randomUUID = function() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
-    });
-  };
+if (import.meta.env.DEV) {
+ window.budgetApi = budgetApi; // Expose for debugging in dev mode
 }
