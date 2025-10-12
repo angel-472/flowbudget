@@ -4,6 +4,7 @@
     import AuthScreen from "./components/AuthScreen.svelte";
     import { getCurrentUser, onAuthStateChange, signOut } from "./api/auth";
     import { signal } from "./api/signal";
+    import { budgetApi } from "./api/budgetApi";
 
   //
   // Dark mode state management
@@ -44,15 +45,19 @@
   let isLoading = $state(true);
   getCurrentUser().then(currentUser => {
     user = currentUser;
-    // isLoading = false; // wait for database sync instead
+    if(user == null){
+      isLoading = false; // stops loading to allow use of auth screen
+    }
   });
   let currentView = $state("month"); // Possible values: "month", "dashboard", "settings"
 
   onAuthStateChange((event, session) => {
     if (event === 'SIGNED_IN') {
+      isLoading = true; // wait for database sync
       user = session.user;
       userId = session.user.id;
       console.log("User signed in:", userId);
+      budgetApi.fetchAllTransactions();
     } else if (event === 'SIGNED_OUT') {
       user = null;
       userId = null;
@@ -68,7 +73,9 @@
 
 
     signal.sub("TRANSACTIONS_FETCH_ALL", "App.svelte", (data) => {
-      isLoading = false;
+      if(user !== null){
+        isLoading = false; /// stops loading screen when transactions are fetched after sign in
+      }
     });
 </script>
 

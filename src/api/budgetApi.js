@@ -55,21 +55,20 @@ class BudgetApi {
       return t.type === type && tDate >= startOfWeek && tDate <= endOfWeek;
     });
   }
+  fetchAllTransactions() {
+    databaseApi.getAllTransactions().then(data => {
+      budgetApi.transactions = data || [];
+      console.log(`💾 Loaded ${budgetApi.transactions.length} transactions into Budget API`);
+      signal.emit('TRANSACTIONS_FETCH_ALL', data);
+    });
+  } 
 }
 
 export const budgetApi = new BudgetApi();
 console.log('🧳 Budget Data API initialized');
 
 // Fetches all transactions, not that scalable but fine for demo purposes
-function fetchAllTransactions() {
-  databaseApi.getAllTransactions().then(data => {
-    budgetApi.transactions = data || [];
-    console.log(`💾 Loaded ${budgetApi.transactions.length} transactions into Budget API`);
-    signal.emit('TRANSACTIONS_FETCH_ALL', data);
-  });
-}
-
-fetchAllTransactions();
+budgetApi.fetchAllTransactions();
 
 if (import.meta.env.DEV) {
  window.budgetApi = budgetApi; // Expose for debugging in dev mode
