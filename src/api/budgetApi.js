@@ -1,4 +1,6 @@
 import { databaseApi } from "./databaseApi.js";
+import { dateUtils } from "./dateUtils.js";
+import { signal } from "./signal.js";
 
 // Polyfill to generate a UUID (if crypto.randomUUID is not available)
 if (!crypto.randomUUID) {
@@ -41,6 +43,18 @@ class BudgetApi {
       transaction.status = transaction.status === 'done' ? 'pending' : 'done';
     }
   }
+  getTransactionsForWeek(year, weekNumber, type) {
+    // Calculate start and end dates of the week
+    const weekRange = dateUtils.getWeekDateRange(year, weekNumber);
+    const startOfWeek = weekRange[0];
+    const endOfWeek = weekRange[6];
+
+    // Filter transactions by type and date range
+    return this.transactions.filter(t => {
+      const tDate = dateUtils.createLocalDate(t.date);
+      return t.type === type && tDate >= startOfWeek && tDate <= endOfWeek;
+    });
+  }
 }
 
 export const budgetApi = new BudgetApi();
@@ -51,6 +65,7 @@ function fetchAllTransactions() {
   databaseApi.getAllTransactions().then(data => {
     budgetApi.transactions = data || [];
     console.log(`💾 Loaded ${budgetApi.transactions.length} transactions into Budget API`);
+    signal.emit('TRANSACTIONS_FETCH_ALL', data);
   });
 }
 

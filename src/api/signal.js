@@ -1,0 +1,47 @@
+class SignalManager {
+  constructor(){
+    this.subs = {};
+  }
+  sub(signalName, id, callback){
+    if(this.subs[signalName] == undefined){
+      this.subs[signalName] = {};
+    }
+    this.subs[signalName][id] = callback;
+  }
+  unsub(signalName, id){
+    if(this.subs[signalName] == undefined) return;
+
+    if(this.subs[signalName][id] !== undefined){
+      delete this.subs[signalName][id];
+    }
+  }
+  unsubAll(id){
+    Object.keys(this.subs).forEach((signalName) => {
+      if(this.subs[signalName][id] !== undefined){
+        delete this.subs[signalName][id];
+      }
+    });
+  }
+  emit(signalName, data){
+    if(this.subs[signalName] == undefined) return;
+
+    Object.keys(this.subs[signalName]).forEach((id) => {
+      if(this.subs[signalName][id] == undefined){
+        return;
+      }
+      this.subs[signalName][id](data);
+    });
+  }
+  emitPrivate(signalName, data, ids){
+    ids.forEach((id) => {
+      if(this.subs[signalName] == undefined || this.subs[signalName][id] == undefined) return;
+      this.subs[signalName][id](data);
+    });
+  }
+}
+
+export const signal = new SignalManager();
+
+if(import.meta.env.DEV) {
+  window.signal = signal; // Expose for debugging in dev mode
+}
