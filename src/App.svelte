@@ -44,7 +44,6 @@
   getCurrentUser().then(currentUser => {
     user = currentUser;
     isLoading = false;
-    console.log("User ID:", userId, user);
   });
   let currentView = $state("month"); // Possible values: "month", "dashboard", "settings"
 
