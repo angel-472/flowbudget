@@ -8,7 +8,7 @@
   import TransactionList from './TransactionList.svelte';
   
 
-  
+
   let props = $props();
   let weekNumber = props.weekNumber ?? 1;
   let currentMonth = props.currentMonth ?? 1;
@@ -34,7 +34,7 @@
     });
   });
   onDestroy(() => {
-    signal.unsubAll("TRANSACTIONS_FETCH_ALL", signalSubId);
+    signal.unsubAll(signalSubId);
   });
 
 </script>
