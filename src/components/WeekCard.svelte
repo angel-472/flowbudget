@@ -3,8 +3,11 @@
   import { budgetApi } from '/src/api/budgetApi.js';
   import { Plus } from 'lucide-svelte';
   import { formatCurrency } from '/src/api/utils.js';
-  import TransactionList from './TransactionList.svelte';
   import { signal } from '/src/api/signal.js';
+  import { onDestroy, onMount } from 'svelte';
+  import TransactionList from './TransactionList.svelte';
+  
+
   
   let props = $props();
   let weekNumber = props.weekNumber ?? 1;
@@ -23,10 +26,17 @@
   let expenses = $state(budgetApi.getTransactionsForWeek(currentYear, weekNumber, 'expenses'));
   let weeklyNet = $derived(incomes.reduce((sum, t) => sum + t.amount, 0) - expenses.reduce((sum, t) => sum + t.amount, 0));
 
-  signal.sub("TRANSACTIONS_FETCH_ALL", `W${weekNumber}_${currentMonth}_${currentYear}`, (data) => {
-    incomes = budgetApi.getTransactionsForWeek(currentYear, weekNumber, 'incomes');
-    expenses = budgetApi.getTransactionsForWeek(currentYear, weekNumber, 'expenses');
+  let signalSubId = `W${weekNumber}_${currentMonth}_${currentYear}`;
+  onMount(() => {
+    signal.sub("TRANSACTIONS_FETCH_ALL", signalSubId, (data) => {
+      incomes = budgetApi.getTransactionsForWeek(currentYear, weekNumber, 'incomes');
+      expenses = budgetApi.getTransactionsForWeek(currentYear, weekNumber, 'expenses');
+    });
   });
+  onDestroy(() => {
+    signal.unsubAll("TRANSACTIONS_FETCH_ALL", signalSubId);
+  });
+
 </script>
 
 <article class="flex flex-1 flex-col {cardStyles}">

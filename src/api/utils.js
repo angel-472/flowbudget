@@ -8,6 +8,6 @@ export function formatCurrency(amount) {
 }
 
 export function formatDate(dateString) {
-  const date = createLocalDate(dateString);
+  const date = new Date(dateString);
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
