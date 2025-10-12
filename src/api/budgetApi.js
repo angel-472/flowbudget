@@ -1,5 +1,3 @@
-import { supabase, handleSupabaseError} from './supabaseClient.js';
-
 console.log('🧳 Budget API initialized');
 
 class BudgetApi {
@@ -8,6 +6,29 @@ class BudgetApi {
   }
   getAllTransactions() {
     return this.transactions;
+  }
+  addTransaction(id, type, category, description, amount, date, status) {
+    let userId = "";
+    let newTransaction = {
+      id: id || crypto.randomUUID(),
+      user_id: userId,
+      type: type,
+      category: category,
+      description: description,
+      amount: parseFloat(amount),
+      date: date,
+      status: status || 'pending'
+    };
+    this.transactions.push(newTransaction);
+  }
+  deleteTransaction(id) {
+    this.transactions = this.transactions.filter(t => t.id !== id);
+  }
+  toggleTransactionStatus(id) {
+    const transaction = this.transactions.find(t => t.id === id);
+    if (transaction) {
+      transaction.status = transaction.status === 'done' ? 'pending' : 'done';
+    }
   }
 }
 
