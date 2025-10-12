@@ -1,4 +1,4 @@
-console.log('🧳 Budget Data API initialized');
+import { databaseApi } from "./databaseApi.js";
 
 // Polyfill to generate a UUID (if crypto.randomUUID is not available)
 if (!crypto.randomUUID) {
@@ -44,6 +44,17 @@ class BudgetApi {
 }
 
 export const budgetApi = new BudgetApi();
+console.log('🧳 Budget Data API initialized');
+
+// Fetches all transactions, not that scalable but fine for demo purposes
+function fetchAllTransactions() {
+  databaseApi.getAllTransactions().then(data => {
+    budgetApi.transactions = data || [];
+    console.log(`💾 Loaded ${budgetApi.transactions.length} transactions into Budget API`);
+  });
+}
+
+fetchAllTransactions();
 
 if (import.meta.env.DEV) {
  window.budgetApi = budgetApi; // Expose for debugging in dev mode

@@ -37,7 +37,13 @@ class DateUtils {
     startOfWeek.setDate(firstWeekSunday.getDate() + (weekNumber - 1) * 7);
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(startOfWeek.getDate() + 6);
-    return { start: startOfWeek, end: endOfWeek };
+
+    // Build array of dates from start to end
+    const dates = [];
+    for (let d = new Date(startOfWeek); d <= endOfWeek; d.setDate(d.getDate() + 1)) {
+      dates.push(new Date(d));
+    }
+    return dates;
   }
 
   getWeeksinMonth(year, monthNumber) {
