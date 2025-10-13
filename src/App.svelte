@@ -68,7 +68,7 @@
   async function handleSignOut() {
     await signOut();
     userId = null;
-    console.log("User signed out");
+    console.log("User signed out 😡");
   }
 
 
