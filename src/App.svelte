@@ -57,7 +57,9 @@
       user = session.user;
       userId = session.user.id;
       console.log("User signed in:", userId);
-      budgetApi.fetchAllTransactions(); // Fetches all transactions, not that scalable but fine for demo purposes
+      budgetApi.fetchAllTransactions().then(() => {
+        isLoading = false; // stops loading screen when transactions are fetched after sign in
+      }); // Fetches all transactions, not that scalable but fine for demo purposes
     } else if (event === 'SIGNED_OUT') {
       user = null;
       userId = null;
@@ -70,13 +72,6 @@
     userId = null;
     console.log("User signed out 😡");
   }
-
-
-    signal.sub("TRANSACTIONS_FETCH_ALL", "App.svelte", (data) => {
-      if(user !== null){
-        isLoading = false; /// stops loading screen when transactions are fetched after sign in
-      }
-    });
 </script>
 
 <!-- TODO: Show something while isLoading -->
