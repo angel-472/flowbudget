@@ -67,8 +67,6 @@ class BudgetApi {
 export const budgetApi = new BudgetApi();
 console.log('🧳 Budget Data API initialized');
 
-// Fetches all transactions, not that scalable but fine for demo purposes
-budgetApi.fetchAllTransactions();
 
 if (import.meta.env.DEV) {
  window.budgetApi = budgetApi; // Expose for debugging in dev mode

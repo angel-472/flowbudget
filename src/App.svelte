@@ -57,7 +57,7 @@
       user = session.user;
       userId = session.user.id;
       console.log("User signed in:", userId);
-      budgetApi.fetchAllTransactions();
+      budgetApi.fetchAllTransactions(); // Fetches all transactions, not that scalable but fine for demo purposes
     } else if (event === 'SIGNED_OUT') {
       user = null;
       userId = null;
