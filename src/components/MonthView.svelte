@@ -35,7 +35,7 @@
 </script>
 
 <div class="flex-1 p-4 sm:p-6 lg:p-8">
-  <header class="flex justify-between items-center mb-8 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md dark:shadow-lg dark:shadow-black/20 sticky top-0 z-10 border border-gray-100 dark:border-gray-700/50">
+  <header class="flex justify-between items-center mb-8 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md dark:shadow-lg dark:shadow-black/20 top-0 z-10 border border-gray-100 dark:border-gray-700/50">
     <div class="flex items-center space-x-4 justify-center w-full">
       <button
         onclick={selectPrevMonth}
