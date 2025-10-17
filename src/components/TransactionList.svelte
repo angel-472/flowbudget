@@ -3,6 +3,7 @@
   import { formatDate, formatCurrency } from '/src/api/utils';
   import { dateUtils } from '/src/api/dateUtils';
   import { budgetApi } from '/src/api/budgetApi';
+  import { signal } from '/src/api/signal.js';
   
   let { type, transactions } = $props();
   const isIncome = type === 'incomes';
@@ -28,12 +29,12 @@
 </script>
 
 {#if transactions.length === 0}
-  <div class="flex flex-1 text-sm items-center justify-center p-6 py-3 {bgColorClass} rounded-xl border border-gray-200 dark:border-gray-700/50 gap-2">
+  <div class="flex flex-1 text-sm items-center justify-center p-6 py-3 {bgColorClass} rounded-xl border border-gray-200 dark:border-gray-700/50 gap-2 h-12 w-full sm:w-1/2">
     <!-- <span>{isIncome ? '💸' : '🛒'}</span> -->
     <p class="{colorClass} text-center">No {isIncome ? 'incomes' : 'expenses'} recorded yet.</p>
   </div>
 {:else}
-  <div class="w-full overflow-x-clip">
+  <div class="w-full sm:w-1/2 overflow-x-clip">
     <!-- Todo: Open edit / delete modal when you tap a transaction -->
     <h4 class="text-lg font-semibold mb-2 {colorClass}">{isIncome ? 'Incomes' : 'Expenses'}</h4>
     <div class="flex flex-col max-h-94 overflow-y-auto">
