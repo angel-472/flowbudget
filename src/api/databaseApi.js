@@ -18,6 +18,20 @@ class DatabaseApi {
       handleSupabaseError(error);
     }
   }
+  // update or insert transaction
+  async upsertTransaction(transaction){
+    try {
+      const { data, error } = await this.supabase
+        .from('flowbudget_transactions')
+        .upsert(transaction)
+        .select();
+      if (error) throw error;
+      console.log(`Transaction ${transaction.id} updated`);
+      return data;
+    } catch (error) {
+      handleSupabaseError(error);
+    }
+  }
 }
 
 export const databaseApi = new DatabaseApi();

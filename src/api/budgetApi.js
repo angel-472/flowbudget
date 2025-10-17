@@ -23,7 +23,7 @@ class BudgetApi {
   addTransaction(id, type, category, description, amount, date, status) {
     let userId = "";
     let newTransaction = {
-      id: id || crypto.randomUUID(),
+      id: id ?? crypto.randomUUID(),
       user_id: userId,
       type: type,
       category: category,
@@ -37,10 +37,11 @@ class BudgetApi {
   deleteTransaction(id) {
     this.transactions = this.transactions.filter(t => t.id !== id);
   }
-  toggleTransactionStatus(id) {
+  async toggleTransactionStatus(id) {
     const transaction = this.transactions.find(t => t.id === id);
     if (transaction) {
       transaction.status = transaction.status === 'done' ? 'pending' : 'done';
+      await databaseApi.upsertTransaction(transaction);
     }
   }
   getTransactionsForWeek(year, weekNumber, type) {
