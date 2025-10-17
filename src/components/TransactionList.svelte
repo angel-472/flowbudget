@@ -20,9 +20,8 @@
     <h4 class="text-lg font-semibold mb-2 {colorClass}">{isIncome ? 'Incomes' : 'Expenses'}</h4>
     <div class="flex flex-col max-h-94 overflow-y-auto cursor-pointer">
       {#each transactions as t (t.id)}
-        
         <div class="flex flex-col rounded-md p-2 border-b-1 border-gray-100 dark:border-gray-700/50 dark:hover:bg-gray-700/50 hover:bg-gray-200/50 transition-all duration-150 ease-in-out">
-          <div class="flex justify-between">
+          <div class="flex justify-between gap-2">
             <div class="flex gap-2 items-start">
                 <p class="font-bold wrap-break-word max-w-53 sm:max-w-none">{t.description}</p>
                 <button
