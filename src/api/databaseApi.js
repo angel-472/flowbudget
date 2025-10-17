@@ -1,5 +1,5 @@
 console.log(`⚡️ Database Sync API initialized`);
-import { supabase, handleSupabaseError } from './supabaseClient.js';
+import { supabase, handleSupabaseError, getCurrentUserId } from './supabaseClient.js';
 
 class DatabaseApi {
   constructor() {
@@ -21,12 +21,13 @@ class DatabaseApi {
   // update or insert transaction
   async upsertTransaction(transaction){
     try {
+      transaction.user_id = await getCurrentUserId();
       const { data, error } = await this.supabase
         .from('flowbudget_transactions')
         .upsert(transaction)
         .select();
       if (error) throw error;
-      console.log(`Transaction ${transaction.id} updated`);
+      console.log(`⚡️ Transaction '${transaction.id}' updated in database.`);
       return data;
     } catch (error) {
       handleSupabaseError(error);

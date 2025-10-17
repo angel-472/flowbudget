@@ -1,6 +1,7 @@
 <script>
   import { Moon, Sun, LogOut } from "lucide-svelte"
     import MonthView from "./components/MonthView.svelte";
+    import TransactionForm from './components/TransactionForm.svelte';
     import AuthScreen from "./components/AuthScreen.svelte";
     import { getCurrentUser, onAuthStateChange, signOut } from "./api/auth";
     import { signal } from "./api/signal";
@@ -82,6 +83,7 @@
 {:else if !user}
   <AuthScreen />
 {:else}
+  <TransactionForm />
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
     <header class="sticky top-0 z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md shadow-lg px-5 py-3 flex items-center justify-between border-b border-gray-200/30 dark:border-gray-700/30">
       <!-- App Name -->

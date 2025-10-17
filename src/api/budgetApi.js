@@ -1,6 +1,8 @@
+import { getCurrentUser } from "./auth.js";
 import { databaseApi } from "./databaseApi.js";
 import { dateUtils } from "./dateUtils.js";
 import { signal } from "./signal.js";
+import { getCurrentUserId } from "./supabaseClient.js";
 
 // Polyfill to generate a UUID (if crypto.randomUUID is not available)
 if (!crypto.randomUUID) {
@@ -20,27 +22,37 @@ class BudgetApi {
   getAllTransactions() {
     return this.transactions;
   }
-  addTransaction(id, type, category, description, amount, date, status) {
-    let userId = "";
+  async addTransaction(data) {
+    console.log('Adding transaction with data:', data);
     let newTransaction = {
-      id: id ?? crypto.randomUUID(),
-      user_id: userId,
-      type: type,
-      category: category,
-      description: description,
-      amount: parseFloat(amount),
-      date: date,
-      status: status || 'pending'
+      id: data.id || crypto.randomUUID(),
+      type: data.type,
+      category: data.category,
+      description: data.description,
+      amount: parseFloat(data.amount),
+      date: data.date,
+      status: data.status || 'pending'
     };
     this.transactions.push(newTransaction);
+    console.log('pushed');
+    signal.emit("UPDATE_TRANSACTION", {transaction: newTransaction});
+    await databaseApi.upsertTransaction(newTransaction);
+    console.log('upserted');
   }
   deleteTransaction(id) {
     this.transactions = this.transactions.filter(t => t.id !== id);
   }
   async toggleTransactionStatus(id) {
-    const transaction = this.transactions.find(t => t.id === id);
+    const transaction = this.getTransactionById(id);
     if (transaction) {
       transaction.status = transaction.status === 'done' ? 'pending' : 'done';
+      signal.emit("UPDATE_TRANSACTION", {transaction});
+      await databaseApi.upsertTransaction(transaction);
+    }
+  }
+  async updateTransaction(id) {
+    const transaction = this.getTransactionById(id);
+    if (transaction) {
       await databaseApi.upsertTransaction(transaction);
     }
   }
@@ -55,6 +67,9 @@ class BudgetApi {
       const tDate = dateUtils.createLocalDate(t.date);
       return t.type === type && tDate >= startOfWeek && tDate <= endOfWeek;
     });
+  }
+  getTransactionById(id){
+    return this.transactions.find(t => t.id === id);
   }
   async fetchAllTransactions() {
     const data = await databaseApi.getAllTransactions();

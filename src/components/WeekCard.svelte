@@ -20,22 +20,46 @@
   function openAddItemModal() {
     // Placeholder function for opening a modal to add a new item
     console.log(`Open modal to add new item for Week ${weekNumber}`);
+    signal.emit("OPEN_TRANSACTION_FORM", {
+      transaction: {
+        id: null,
+        type: 'expenses',
+        date: dateRange[0].toISOString().split('T')[0],
+        description: '',
+        amount: '',
+        category: '',
+        status: 'pending'
+      }
+    });
   }
 
   let incomes = $state(budgetApi.getTransactionsForWeek(currentYear, weekNumber, 'incomes'));
   let expenses = $state(budgetApi.getTransactionsForWeek(currentYear, weekNumber, 'expenses'));
   let weeklyNet = $derived(incomes.reduce((sum, t) => sum + t.amount, 0) - expenses.reduce((sum, t) => sum + t.amount, 0));
 
+  function updateTransactionData() {
+    incomes = budgetApi.getTransactionsForWeek(currentYear, weekNumber, 'incomes');
+    expenses = budgetApi.getTransactionsForWeek(currentYear, weekNumber, 'expenses');
+    weeklyNet = incomes.reduce((sum, t) => sum + t.amount, 0) - expenses.reduce((sum, t) => sum + t.amount, 0);
+  }
+
   let signalSubId = `W${weekNumber}_${currentMonth}_${currentYear}`;
   onMount(() => {
     signal.sub("TRANSACTIONS_FETCH_ALL", signalSubId, (data) => {
-      incomes = budgetApi.getTransactionsForWeek(currentYear, weekNumber, 'incomes');
-      expenses = budgetApi.getTransactionsForWeek(currentYear, weekNumber, 'expenses');
+      updateTransactionData();
+    });
+    signal.sub("UPDATE_TRANSACTION", signalSubId, (data) => {
+      let weekOfTransaction = dateUtils.getWeekNumber(dateUtils.createLocalDate(data.transaction.date));
+      if(weekOfTransaction === weekNumber){
+        updateTransactionData();
+      }
     });
   });
+
   onDestroy(() => {
     signal.unsubAll(signalSubId);
   });
+
 
 </script>
 
