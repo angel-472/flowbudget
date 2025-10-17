@@ -83,5 +83,5 @@ console.log('🧳 Budget Data API initialized');
 
 
 if (import.meta.env.DEV) {
- window.budgetApi = budgetApi; // Expose for debugging in dev mode
+ window.budgetApiRef = budgetApi; // Expose for debugging in dev mode
 }

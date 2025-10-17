@@ -47,5 +47,5 @@ class SignalManager {
 export const signal = new SignalManager();
 
 if(import.meta.env.DEV) {
-  window.signal = signal; // Expose for debugging in dev mode
+  window.signalRef = signal; // Expose for debugging in dev mode
 }

@@ -38,5 +38,5 @@ class DatabaseApi {
 export const databaseApi = new DatabaseApi();
 
 if(import.meta.env.DEV) {
-  window.databaseApi = databaseApi; // Expose for debugging in dev mode
+  window.databaseApiRef = databaseApi; // Expose for debugging in dev mode
 }
