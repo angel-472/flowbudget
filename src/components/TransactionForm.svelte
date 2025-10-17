@@ -74,8 +74,10 @@
         Object.assign(existingTransaction, transaction);
       }
       budgetApi.updateTransaction(id);
+      signal.emit("UPDATE_TRANSACTION", {transaction: existingTransaction});
     } else {
       budgetApi.addTransaction(transaction);
+      signal.emit("UPDATE_TRANSACTION", {transaction});
     }
     handleClose();
   }
@@ -159,7 +161,7 @@
           class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-xl shadow-lg hover:bg-indigo-700 transition"
           onsubmit={handleSubmit}
         >
-          Add Transaction
+          {isNewTransaction ? 'Add' : 'Edit'} Transaction
         </button>
       </div>
     </form>

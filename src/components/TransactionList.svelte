@@ -1,5 +1,5 @@
 <script>
-  import { Check, Square, Trash2 } from 'lucide-svelte';
+  import { Check, Square, Trash, FilePenLine } from 'lucide-svelte';
   import { formatDate, formatCurrency } from '/src/api/utils';
   import { dateUtils } from '/src/api/dateUtils';
   import { budgetApi } from '/src/api/budgetApi';
@@ -18,6 +18,13 @@
     );
     budgetApi.toggleTransactionStatus(id);
   }
+  function handleEditTransaction(id) {
+    const transaction = transactions.find(t => t.id === id);
+    if(transaction){
+      // Emit signal to open transaction form with the selected transaction data
+      signal.emit("OPEN_TRANSACTION_FORM", { transaction });
+    }
+  }
 </script>
 
 {#if transactions.length === 0}
@@ -29,10 +36,11 @@
   <div class="w-full overflow-x-clip">
     <!-- Todo: Open edit / delete modal when you tap a transaction -->
     <h4 class="text-lg font-semibold mb-2 {colorClass}">{isIncome ? 'Incomes' : 'Expenses'}</h4>
-    <div class="flex flex-col max-h-94 overflow-y-auto cursor-pointer">
+    <div class="flex flex-col max-h-94 overflow-y-auto">
       {#each transactions.toSorted((a, b) => new Date(a.date) - new Date(b.date)) as t (t.id)}
-        <div class="flex flex-col rounded-md p-2 border-b-1 border-gray-100 dark:border-gray-700/50 dark:hover:bg-gray-700/50 hover:bg-gray-200/50 transition-all duration-150 ease-in-out">
-          <div class="flex justify-between gap-2">
+        <div class="flex flex-row gap-4 justify-between rounded-md p-2 border-b-1 border-gray-100 dark:border-gray-700/50 dark:hover:bg-gray-700/50 hover:bg-gray-200/50 transition-all duration-150 ease-in-out">
+          <!-- Left side: Description + Category -->
+          <div class="flex flex-col flex-1 justify-between">
             <div class="flex gap-2 items-start">
                 <p class="font-bold wrap-break-word max-w-53 sm:max-w-none">{t.description}</p>
                 <button
@@ -47,13 +55,29 @@
                 {/if}
               </button>
             </div>
-            <p class="text-sm font-semibold text-right {colorClass}">
+            <p class="text-gray-500 dark:text-gray-400 text-sm">{t.category !== undefined && t.category !== "" ? t.category : "No Category"}</p>
+          </div>
+          
+          <!-- Right side: Amount + Date -->
+          <div class="flex flex-col items-end justify-between">
+            <p class="text-sm font-semibold {colorClass}">
                 {formatCurrency(t.amount)}
             </p>
+            <p class="text-gray-500 dark:text-gray-400 text-sm">{dateUtils.createLocalDate(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
           </div>
-          <div class="flex justify-between text-gray-500 dark:text-gray-400 text-sm">
-            <p>{t.category !== undefined && t.category !== "" ? t.category : "No Category"}</p>
-            <p>{dateUtils.createLocalDate(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+
+          <!-- Edit Button -->
+          <div class="flex flex-col gap-2 justify-center text-gray-500 dark:text-gray-400 ">
+             <button class="hover:text-gray-800 dark:hover:text-gray-200 cursor-pointer"
+             onclick={() => { handleEditTransaction(t.id); }}
+             >
+              <FilePenLine size={18} />
+            </button>
+            <button class="hover:text-gray-800 dark:hover:text-gray-200 cursor-pointer"
+            onclick={() => {/* TODO: Open delete modal */}}
+            >
+              <Trash size={18} />
+            </button>
           </div>
         </div>
       {/each}

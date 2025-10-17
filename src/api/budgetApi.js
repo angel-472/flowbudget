@@ -35,7 +35,6 @@ class BudgetApi {
     };
     this.transactions.push(newTransaction);
     console.log('pushed');
-    signal.emit("UPDATE_TRANSACTION", {transaction: newTransaction});
     await databaseApi.upsertTransaction(newTransaction);
     console.log('upserted');
   }
