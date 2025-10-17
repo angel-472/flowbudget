@@ -2,11 +2,22 @@
   import { Check, Square, Trash2 } from 'lucide-svelte';
   import { formatDate, formatCurrency } from '/src/api/utils';
   import { dateUtils } from '/src/api/dateUtils';
+  import { budgetApi } from '/src/api/budgetApi';
   
   let { type, transactions } = $props();
   const isIncome = type === 'incomes';
   const colorClass = isIncome ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
   const bgColorClass = isIncome ? 'bg-green-50 dark:bg-green-900/30' : 'bg-red-50 dark:bg-red-900/30';
+
+  async function handleToggleStatus(id) {
+    // Create a new array with the updated transaction status
+    transactions = transactions.map(t => 
+      t.id === id 
+        ? { ...t, status: t.status === 'done' ? 'pending' : 'done' }
+        : t
+    );
+    budgetApi.toggleTransactionStatus(id);
+  }
 </script>
 
 {#if transactions.length === 0}
@@ -19,7 +30,7 @@
     <!-- Todo: Open edit / delete modal when you tap a transaction -->
     <h4 class="text-lg font-semibold mb-2 {colorClass}">{isIncome ? 'Incomes' : 'Expenses'}</h4>
     <div class="flex flex-col max-h-94 overflow-y-auto cursor-pointer">
-      {#each transactions as t (t.id)}
+      {#each transactions.toSorted((a, b) => new Date(a.date) - new Date(b.date)) as t (t.id)}
         <div class="flex flex-col rounded-md p-2 border-b-1 border-gray-100 dark:border-gray-700/50 dark:hover:bg-gray-700/50 hover:bg-gray-200/50 transition-all duration-150 ease-in-out">
           <div class="flex justify-between gap-2">
             <div class="flex gap-2 items-start">
@@ -27,6 +38,7 @@
                 <button
                 class="p-1 rounded-md {t.status === 'done' ? 'text-gray-800 bg-gray-200 dark:text-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600' : 'text-gray-400 hover:text-gray-800 hover:bg-white dark:hover:text-gray-200 dark:hover:bg-gray-800'} transition"
                 title={t.status === 'done' ? 'Mark as Pending' : 'Mark as Done'}
+                onclick={() => handleToggleStatus(t.id)}
                 >
                 {#if t.status === 'done'}
                   <Check size={14} />
