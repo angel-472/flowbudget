@@ -6,3 +6,9 @@
 * {
   @apply transition-colors duration-300;
 }
+
+/* disable double tab zoom */
+:root {
+  touch-action: pan-x pan-y;
+  height: 100% 
+}
