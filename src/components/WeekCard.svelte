@@ -81,7 +81,7 @@
       <span class="hidden sm:inline">Add</span>
     </button>
   </header>
-  <div class="flex flex-col lg:flex-row gap-6 pb-4 mb-4 border-b border-gray-200 dark:border-gray-700">
+  <div class="flex flex-col md:flex-row gap-6 pb-4 mb-4 border-b border-gray-200 dark:border-gray-700">
     <TransactionList type="incomes" transactions={incomes} />
     <TransactionList type="expenses" transactions={expenses} />
   </div>
