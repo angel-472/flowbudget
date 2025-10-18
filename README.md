@@ -1,43 +1,172 @@
-# Svelte + Vite
+# 💰 FlowBudget
 
-This template should help get you started developing with Svelte in Vite.
+> **A modern, intuitive weekly budget tracking application built with Svelte 5**
 
-## Recommended IDE Setup
+FlowBudget helps you take control of your finances with a fresh approach to budgeting. Instead of overwhelming monthly overviews, FlowBudget focuses on manageable weekly periods, making it easier to track spending patterns and stay on budget.
 
-[VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode).
+[![Built with Svelte 5](https://img.shields.io/badge/Svelte-5-ff3e00?style=flat&logo=svelte)](https://svelte.dev/)
+[![Powered by Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=flat&logo=supabase&logoColor=white)](https://supabase.com/)
+[![Styled with Tailwind](https://img.shields.io/badge/Tailwind-38BDF8?style=flat&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Icons by Lucide](https://img.shields.io/badge/Lucide-000?style=flat&logo=lucide&logoColor=white)](https://lucide.dev/)
 
-## Need an official Svelte framework?
+## ✨ Features
 
-Check out [SvelteKit](https://github.com/sveltejs/kit#readme), which is also powered by Vite. Deploy anywhere with its serverless-first approach and adapt to various platforms, with out of the box support for TypeScript, SCSS, and Less, and easily-added support for mdsvex, GraphQL, PostCSS, Tailwind CSS, and more.
+### 📅 **Week-Based Budgeting**
+- **Apple Calendar Compatible**: Uses Sunday-Saturday week system for familiar navigation
+- **Monthly Overview**: See all weeks in a month at a glance
+- **Smart Date Handling**: Automatic week number calculation and date range display
 
-## Technical considerations
+### 💸 **Transaction Management**
+- **Quick Entry**: Add income and expenses with intuitive forms
+- **Real-time Updates**: Instant UI updates with optimistic rendering
+- **Status Tracking**: Mark transactions as pending or completed
+- **Smart Sorting**: Transactions automatically sorted by date
+- **Edit & Delete**: Full CRUD operations with confirmation modals
 
-**Why use this over SvelteKit?**
+### 🎨 **Modern UI/UX**
+- **Glassmorphism Design**: Beautiful frosted glass effects throughout
+- **Dark Mode Support**: Seamless light/dark theme switching with system preference detection
+- **Responsive Layout**: Optimized for desktop and mobile devices
+- **Animated Backgrounds**: Canvas-based particle animations for visual appeal
+- **Gradient Accents**: Beautiful gradient text and buttons
 
-- It brings its own routing solution which might not be preferable for some users.
-- It is first and foremost a framework that just happens to use Vite under the hood, not a Vite app.
+### 🔐 **Secure Authentication**
+- **Supabase Auth**: Secure email/password authentication
+- **Row Level Security**: Database-level security for user data isolation
+- **Session Management**: Automatic login state persistence
 
-This template contains as little as possible to get started with Vite + Svelte, while taking into account the developer experience with regards to HMR and intellisense. It demonstrates capabilities on par with the other `create-vite` templates and is a good starting point for beginners dipping their toes into a Vite + Svelte project.
+## 🎨 Design Philosophy
 
-Should you later need the extended capabilities and extensibility provided by SvelteKit, the template has been structured similarly to SvelteKit so that it is easy to migrate.
+FlowBudget embraces a **week-centric approach** to budgeting because:
 
-**Why include `.vscode/extensions.json`?**
+1. **Manageable Timeframes**: Weekly cycles are easier to mentally track than monthly
+2. **Regular Check-ins**: Encourages frequent budget reviews
+3. **Flexible Planning**: Adapt spending patterns within shorter periods
+4. **Reduced Overwhelm**: Smaller data sets are less intimidating
 
-Other templates indirectly recommend extensions via the README, but this file allows VS Code to prompt the user to install the recommended extension upon opening the project.
+The UI prioritizes **clarity and efficiency**:
+- Glassmorphism effects create depth without distraction
+- Consistent color coding (green for income, red for expenses)
+- Minimal cognitive load with intuitive interactions
 
-**Why enable `checkJs` in the JS template?**
 
-It is likely that most cases of changing variable types in runtime are likely to be accidental, rather than deliberate. This provides advanced typechecking out of the box. Should you like to take advantage of the dynamically-typed nature of JavaScript, it is trivial to change the configuration.
+## 🚀 Quick Start
 
-**Why is HMR not preserving my local component state?**
+### Prerequisites
+- Node.js 18+ 
+- npm or pnpm
 
-HMR state preservation comes with a number of gotchas! It has been disabled by default in both `svelte-hmr` and `@sveltejs/vite-plugin-svelte` due to its often surprising behavior. You can read the details [here](https://github.com/sveltejs/svelte-hmr/tree/master/packages/svelte-hmr#preservation-of-local-state).
+### Installation
 
-If you have state that's important to retain within a component, consider creating an external store which would not be replaced by HMR.
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/angel-472/flowbudget.git
+   cd flowbudget
+   ```
 
-```js
-// store.js
-// An extremely simple external store
-import { writable } from 'svelte/store'
-export default writable(0)
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+   Create a `.env` file in the root directory:
+   ```env
+   VITE_SUPABASE_URL=your_supabase_project_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+4. **Start development server**
+   ```bash
+   npm run dev
+   ```
+
+5. **Open your browser**
+   Navigate to `http://localhost:8001`
+
+
+## 🎯 Core Architecture
+
+### **Svelte 5 Runes System**
+FlowBudget leverages Svelte 5's new reactivity system:
+- `$state()` - Local component state management
+- `$derived()` - Computed values that automatically update
+- `$props()` - Type-safe component properties
+
+### **Signal-Based Communication**
+A custom signal system enables efficient communication across modules:
+```javascript
+signal.emit("UPDATE_TRANSACTION", { transaction });
+signal.sub("REFRESH_MONTH_VIEW", componentId, callback);
 ```
+
+## 🛠️ Development
+
+### **Available Scripts**
+
+```bash
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+
+# Deploy to Cloudflare Pages
+npm run deploy
+```
+
+### **Key Technologies**
+
+- **Frontend**: Svelte 5, Vite, TailwindCSS 4
+- **Backend**: Supabase (PostgreSQL, Auth, Real-time)
+- **Icons**: Lucide Svelte
+- **Deployment**: Cloudflare Pages
+- **Styling**: TailwindCSS with custom glassmorphism components
+
+### **Database Schema**
+
+```sql
+-- Transactions table
+create table transactions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id),
+  type text check (type in ('incomes', 'expenses')),
+  description text not null,
+  amount decimal(10,2) not null,
+  category text,
+  date date not null,
+  status text check (status in ('pending', 'done')) default 'pending',
+  created_at timestamp with time zone default timezone('utc'::text, now())
+);
+```
+
+## 📱 Browser Support
+
+- ✅ Chrome/Chromium 90+
+- ✅ Firefox 88+
+- ✅ Safari 14+
+- ✅ Edge 90+
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [Svelte Team](https://svelte.dev/) - For the amazing framework
+- [Supabase](https://supabase.com/) - For the backend infrastructure
+- [Tailwind CSS](https://tailwindcss.com/) - For the utility-first styling
+- [Lucide](https://lucide.dev/) - For the beautiful icons
+
+---
+
+<div align="center">
+
+**Built with ❤️ by [github.com/angel-472](https://github.com/angel-472)**
+
+*Empowering better financial habits, one week at a time.*
+
+</div>
