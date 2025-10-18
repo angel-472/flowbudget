@@ -9,6 +9,10 @@ FlowBudget helps you take control of your finances with a fresh approach to budg
 [![Styled with Tailwind](https://img.shields.io/badge/Tailwind-38BDF8?style=flat&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![Icons by Lucide](https://img.shields.io/badge/Lucide-000?style=flat&logo=lucide&logoColor=white)](https://lucide.dev/)
 
+**🚀 Try FlowBudget Live Demo:**  
+Experience all features in your browser — no install required!  
+👉 [flowbudget.pages.dev](https://flowbudget.pages.dev/)
+
 ## ✨ Features
 
 ### 📅 **Week-Based Budgeting**
@@ -152,14 +156,15 @@ create table transactions (
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License – see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- [Svelte Team](https://svelte.dev/) - For the amazing framework
-- [Supabase](https://supabase.com/) - For the backend infrastructure
-- [Tailwind CSS](https://tailwindcss.com/) - For the utility-first styling
-- [Lucide](https://lucide.dev/) - For the beautiful icons
+- [Svelte Team](https://svelte.dev/) – For the amazing framework
+- [Supabase](https://supabase.com/) – For the backend infrastructure
+- [Tailwind CSS](https://tailwindcss.com/) – For the utility-first styling
+- [Lucide](https://lucide.dev/) – For the beautiful icons
+- [GitHub Copilot Pro](https://github.com/features/copilot) – For AI-powered coding assistance and technical writing
 
 ---
 
