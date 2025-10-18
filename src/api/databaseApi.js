@@ -33,6 +33,19 @@ class DatabaseApi {
       handleSupabaseError(error);
     }
   }
+  async deleteTransaction(transactionId){
+    try {
+      const { data, error } = await this.supabase
+        .from('flowbudget_transactions')
+        .delete()
+        .eq('id', transactionId);
+      if (error) throw error;
+      console.log(`⚡️ Transaction '${transactionId}' deleted 🗑️ from database.`);
+      return data;
+    } catch (error) {
+      handleSupabaseError(error);
+    }
+  }
 }
 
 export const databaseApi = new DatabaseApi();

@@ -26,6 +26,10 @@
       signal.emit("OPEN_TRANSACTION_FORM", { transaction });
     }
   }
+
+  function handleDeleteTransaction(id) {
+    budgetApi.deleteTransaction(id);
+  }
 </script>
 
 {#if transactions.length === 0}
@@ -76,7 +80,7 @@
               <FilePenLine size={18} />
             </button>
             <button class="hover:text-gray-800 dark:hover:text-gray-200 cursor-pointer"
-            onclick={() => {/* TODO: Open delete modal */}}
+            onclick={() => { handleDeleteTransaction(t.id); }}
             >
               <Trash size={18} />
             </button>

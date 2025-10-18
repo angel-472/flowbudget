@@ -38,8 +38,15 @@ class BudgetApi {
     await databaseApi.upsertTransaction(newTransaction);
     console.log('upserted');
   }
-  deleteTransaction(id) {
+  async deleteTransaction(id) {
+    let transaction = this.getTransactionById(id);
+    if(!transaction) {
+      console.warn(`Transaction with id '${id}' not found for deletion.`);
+      return;
+    }
     this.transactions = this.transactions.filter(t => t.id !== id);
+    signal.emit("UPDATE_TRANSACTION", {transaction});
+    await databaseApi.deleteTransaction(id);
   }
   async toggleTransactionStatus(id) {
     const transaction = this.getTransactionById(id);
