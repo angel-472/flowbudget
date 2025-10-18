@@ -36,7 +36,8 @@
 {:else}
   <div class="w-full md:w-1/2 overflow-x-clip">
     <!-- Todo: Open edit / delete modal when you tap a transaction -->
-    <h4 class="text-lg font-semibold mb-2 {colorClass}">{isIncome ? 'Incomes' : 'Expenses'}</h4>
+    <h4 class="text-lg font-semibold {colorClass}">{isIncome ? 'Incomes' : 'Expenses'}</h4>
+    <h5 class="text-sm font-semibold mb-2 text-gray-500 dark:text-gray-400">Total: <span class="font-normal">{formatCurrency(transactions.reduce((sum, t) => sum + t.amount, 0))}</span></h5>
     <div class="flex flex-col max-h-94 overflow-y-auto">
       {#each transactions.toSorted((a, b) => new Date(a.date) - new Date(b.date)) as t (t.id)}
         <div class="flex flex-row gap-4 justify-between rounded-md p-2 border-b-1 border-gray-100 dark:border-gray-700/50 dark:hover:bg-gray-700/50 hover:bg-gray-200/50 transition-all duration-150 ease-in-out">
