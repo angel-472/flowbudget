@@ -60,13 +60,18 @@
     signal.unsubAll(signalSubId);
   });
 
-
+  let isCurrentWeek = $derived.by(() => {
+    let today = dateUtils.createLocalDate(new Date().toISOString().split('T')[0]);
+    let currentWeekNum = dateUtils.getWeekNumber(today);
+    let currentYearNum = today.getFullYear();
+    return weekNumber === currentWeekNum && currentYear === currentYearNum;
+  }); 
 </script>
 
 <article class="flex flex-1 flex-col {cardStyles}">
   <header class="flex items-center justify-between w-full pb-3 mb-4 border-b border-gray-200 dark:border-gray-700">
     <div>
-      <h2 class="font-extrabold">{dateRange[0].toLocaleString('default', { month: 'short' })} {dateRange[0].getDate()} – {dateRange[6].toLocaleString('default', { month: 'short' })} {dateRange[6].getDate()}</h2>
+      <h2 class="font-extrabold {isCurrentWeek ? 'bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent' : ''}">{dateRange[0].toLocaleString('default', { month: 'short' })} {dateRange[0].getDate()} – {dateRange[6].toLocaleString('default', { month: 'short' })} {dateRange[6].getDate()}</h2>
       <p class="text-sm text-gray-500 dark:text-gray-400">W{weekNumber}</p>
     </div>
     <button
