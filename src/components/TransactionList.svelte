@@ -99,11 +99,13 @@
           <div class="flex flex-col gap-2 justify-center text-gray-500 dark:text-gray-400 ">
              <button class="hover:text-gray-800 dark:hover:text-gray-200 cursor-pointer"
              onclick={() => { handleEditTransaction(t.id); }}
+             title="Edit Transaction"
              >
               <FilePenLine size={18} />
             </button>
             <button class="hover:text-gray-800 dark:hover:text-gray-200 cursor-pointer"
             onclick={() => { handleDeleteTransaction(t.id); }}
+            title="Delete Transaction"
             >
               <Trash size={18} />
             </button>
