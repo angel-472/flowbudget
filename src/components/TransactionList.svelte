@@ -10,6 +10,10 @@
   const colorClass = isIncome ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
   const bgColorClass = isIncome ? 'bg-green-50 dark:bg-green-900/30' : 'bg-red-50 dark:bg-red-900/30';
 
+  // Delete confirmation modal state
+  let showDeleteModal = $state(false);
+  let transactionToDelete = $state(null);
+
   async function handleToggleStatus(id) {
     // Create a new array with the updated transaction status
     transactions = transactions.map(t => 
@@ -19,6 +23,7 @@
     );
     budgetApi.toggleTransactionStatus(id);
   }
+  
   function handleEditTransaction(id) {
     const transaction = transactions.find(t => t.id === id);
     if(transaction){
@@ -28,7 +33,25 @@
   }
 
   function handleDeleteTransaction(id) {
-    budgetApi.deleteTransaction(id);
+    const transaction = transactions.find(t => t.id === id);
+    if (transaction) {
+      transactionToDelete = transaction;
+      showDeleteModal = true;
+    }
+  }
+
+  function confirmDelete() {
+    if (transactionToDelete) {
+      budgetApi.deleteTransaction(transactionToDelete.id);
+      transactions = transactions.filter(t => t.id !== transactionToDelete.id);
+      signal.emit("UPDATE_TRANSACTION", { transaction: transactionToDelete });
+    }
+    closeDeleteModal();
+  }
+
+  function closeDeleteModal() {
+    showDeleteModal = false;
+    transactionToDelete = null;
   }
 </script>
 
@@ -87,6 +110,35 @@
           </div>
         </div>
       {/each}
+    </div>
+  </div>
+{/if}
+
+<!-- Delete Confirmation Modal -->
+{#if showDeleteModal && transactionToDelete}
+  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
+      <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">
+        Delete Transaction
+      </h3>
+      <p class="text-gray-600 dark:text-gray-400 mb-6">
+        Are you sure you want to delete "<span class="font-medium">{transactionToDelete.description}</span>"? 
+        This action cannot be undone.
+      </p>
+      <div class="flex justify-end space-x-3">
+        <button
+          onclick={closeDeleteModal}
+          class="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          onclick={confirmDelete}
+          class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+        >
+          Delete
+        </button>
+      </div>
     </div>
   </div>
 {/if}
