@@ -83,7 +83,7 @@
       onclick={openAddItemModal}
     >
       <Plus size={18}/>
-      <span class="hidden sm:inline">Add</span>
+      <span >Add</span>
     </button>
   </header>
   <div class="flex flex-col md:flex-row gap-6 pb-4 mb-4 border-b border-gray-200 dark:border-gray-700">
