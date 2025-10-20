@@ -27,6 +27,7 @@
         }
         let result = await signUp(email, password);
         console.log(`Sign up result: `, result);
+        isSignUp = false; //Switch to sign in after successful sign up
       } else {
         // Sign in logic
         let result = await signIn(email, password);
@@ -39,6 +40,12 @@
       }
       else if(err.message.includes('Email not confirmed')) {
         error = 'Your email is not confirmed. Please check your inbox before signing in.';
+      }
+      else if(err.message.includes('User already exists')) {
+        error = 'An account with this email already exists. Please sign in instead.';
+      }
+      else if(err.message.includes('Password should be at least')) {
+        error = 'Password is too short. It should be at least 8 characters long .';
       }
     } finally {
       isSubmitting = false;
