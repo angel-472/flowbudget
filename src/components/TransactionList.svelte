@@ -69,9 +69,9 @@
       {#each transactions.toSorted((a, b) => new Date(a.date) - new Date(b.date)) as t (t.id)}
         <div class="flex flex-row gap-4 justify-between rounded-md p-2 border-b-1 border-gray-100 dark:border-gray-700/50 dark:hover:bg-gray-700/50 hover:bg-gray-200/50 transition-all duration-150 ease-in-out">
           <!-- Left side: Description + Category -->
-          <div class="flex flex-col flex-1 justify-between">
+          <div class="flex flex-col flex-1 gap-0.5 justify-between">
             <div class="flex gap-2 items-start">
-                <p class="font-bold wrap-break-word max-w-53 sm:max-w-none">{t.description}</p>
+                <!-- Pending / done checkmark -->
                 <button
                 class="p-1 rounded-md {t.status === 'done' ? 'text-gray-800 bg-gray-200 dark:text-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600' : 'text-gray-400 hover:text-gray-800 hover:bg-white dark:hover:text-gray-200 dark:hover:bg-gray-800'} transition"
                 title={t.status === 'done' ? 'Mark as Pending' : 'Mark as Done'}
@@ -83,6 +83,7 @@
                   <Square size={14} />
                 {/if}
               </button>
+              <p class="font-bold wrap-break-word max-w-53 sm:max-w-none">{t.description}</p>
             </div>
             <p class="text-gray-500 dark:text-gray-400 text-sm">{t.category !== undefined && t.category !== "" ? t.category : "No Category"}</p>
           </div>
