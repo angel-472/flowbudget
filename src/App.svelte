@@ -5,7 +5,7 @@
     import AuthScreen from "./components/AuthScreen.svelte";
     import { getCurrentUser, onAuthStateChange, signOut } from "./api/auth";
     import { signal } from "./api/signal";
-    import { budgetApi } from "./api/budgetApi";
+    import { budgetApi } from "./api/budgetApi.svelte.js";
 
   //
   // Dark mode state management

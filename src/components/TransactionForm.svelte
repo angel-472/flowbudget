@@ -1,7 +1,7 @@
 <script>
   import { dateUtils } from 'src/api/dateUtils';
   import { signal } from "src/api/signal";
-  import { budgetApi } from "src/api/budgetApi";
+  import { budgetApi } from "src/api/budgetApi.svelte.js";
   import { onMount, onDestroy } from 'svelte';
 
   const signalSubId = "TransactionFormComponent";

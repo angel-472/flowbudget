@@ -17,7 +17,7 @@ if (!crypto.randomUUID) {
 
 class BudgetApi {
   constructor(){
-    this.transactions = [];
+    this.transactions = $state([]);
   }
   getAllTransactions() {
     return this.transactions;

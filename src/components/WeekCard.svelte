@@ -1,6 +1,6 @@
 <script>
   import { dateUtils } from '/src/api/dateUtils.js';
-  import { budgetApi } from '/src/api/budgetApi.js';
+  import { budgetApi } from '/src/api/budgetApi.svelte.js';
   import { Plus } from 'lucide-svelte';
   import { formatCurrency } from '/src/api/utils.js';
   import { signal } from '/src/api/signal.js';

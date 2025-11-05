@@ -2,7 +2,7 @@
   import { Check, Square, Trash, FilePenLine } from 'lucide-svelte';
   import { formatDate, formatCurrency } from '/src/api/utils';
   import { dateUtils } from '/src/api/dateUtils';
-  import { budgetApi } from '/src/api/budgetApi';
+  import { budgetApi } from '/src/api/budgetApi.svelte.js';
   import { signal } from '/src/api/signal.js';
   
   let { type, transactions } = $props();
