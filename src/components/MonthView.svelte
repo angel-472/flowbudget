@@ -4,6 +4,7 @@
   import { dateUtils } from '/src/api/dateUtils.js';
   import { formatCurrency } from '/src/api/utils.js';
   import WeekCard from './WeekCard.svelte';
+  import { onMount } from 'svelte';
   
   // Mock state variables
   let currentMonth = $state(new Date().getMonth());
@@ -62,6 +63,23 @@
       transactionCount: monthTransactions.length
     };
   });
+
+  function scrollTo(id, offset = 100, smooth = true) {
+    const element = document.getElementById(id);
+    var elementPosition = element.getBoundingClientRect().top;
+    var offsetPosition = elementPosition + window.pageYOffset - offset;
+
+    window.scrollTo({
+         top: offsetPosition,
+         behavior: smooth ? "smooth" : "auto"
+    });
+  }
+
+  // Scroll to current week when loading into page
+  onMount(() => {
+    let weekNumber = dateUtils.getWeekNumber(dateUtils.createLocalDate(new Date().toISOString().split('T')[0]));
+    scrollTo(`week-view-${weekNumber}`, (67 + 16), false); // 67px header + 16px padding
+  });
 </script>
 
 <div class="flex-1 p-4 sm:p-6 lg:p-8">
@@ -98,25 +116,25 @@
   <!-- Monthly Summary -->
   <div class="mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-lg dark:shadow-black/20 border border-gray-100 dark:border-gray-700/50 overflow-hidden">
     <div class="px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-700 dark:to-purple-700">
-      <h3 class="text-xl font-bold text-white">Monthly Summary</h3>
+      <h3 class="text-lg font-bold text-white">Monthly Summary</h3>
       <p class="text-sm text-indigo-100 dark:text-indigo-200">{monthlySummary.transactionCount} transactions</p>
     </div>
     
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-6">
       <!-- Total Income -->
-      <div class="bg-green-50 dark:bg-green-900/30 rounded-lg p-4 border border-green-200 dark:border-green-700/50">
+      <div class="bg-green-50 dark:bg-green-900/30 rounded-lg p-4 border border-gray-200 dark:border-gray-700/50">
         <p class="text-sm font-medium text-green-600 dark:text-green-400 mb-1">Total Income</p>
         <p class="text-2xl font-bold text-green-700 dark:text-green-300">{formatCurrency(monthlySummary.income)}</p>
       </div>
       
       <!-- Total Expenses -->
-      <div class="bg-red-50 dark:bg-red-900/30 rounded-lg p-4 border border-red-200 dark:border-red-700/50">
+      <div class="bg-red-50 dark:bg-red-900/30 rounded-lg p-4 border border-gray-200 dark:border-gray-700/50">
         <p class="text-sm font-medium text-red-600 dark:text-red-400 mb-1">Total Expenses</p>
         <p class="text-2xl font-bold text-red-700 dark:text-red-300">{formatCurrency(monthlySummary.expenses)}</p>
       </div>
       
       <!-- Net -->
-      <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 border border-gray-200 dark:border-gray-600/50">
+      <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700/50">
         <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Net</p>
         <p class="text-2xl font-bold {monthlySummary.net >= 0 ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}">
           {formatCurrency(monthlySummary.net)}
