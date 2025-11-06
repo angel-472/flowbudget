@@ -1,11 +1,12 @@
 <script>
-  import { Moon, Sun, LogOut } from "lucide-svelte"
-    import MonthView from "./components/MonthView.svelte";
-    import TransactionForm from './components/TransactionForm.svelte';
-    import AuthScreen from "./components/AuthScreen.svelte";
-    import { getCurrentUser, onAuthStateChange, signOut } from "./api/auth";
-    import { signal } from "./api/signal";
-    import { budgetApi } from "./api/budgetApi.svelte.js";
+  import { Moon, Sun, LogOut, ChevronsUp } from "lucide-svelte"
+  import { onMount } from "svelte";
+  import MonthView from "./components/MonthView.svelte";
+  import TransactionForm from './components/TransactionForm.svelte';
+  import AuthScreen from "./components/AuthScreen.svelte";
+  import { getCurrentUser, onAuthStateChange, signOut } from "./api/auth";
+  import { signal } from "./api/signal";
+  import { budgetApi } from "./api/budgetApi.svelte.js";
 
   //
   // Dark mode state management
@@ -73,6 +74,29 @@
     userId = null;
     console.log("User signed out 😡");
   }
+  
+  // Scroll to top functionality
+  let showScrollButton = $state(false);
+  
+  onMount(() => {
+    const handleScroll = () => {
+      // Show button when scrolled down 300px
+      showScrollButton = window.scrollY > 600;
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  });
+  
+  function scrollToTop() {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  }
 </script>
 
 <!-- TODO: Show something while isLoading -->
@@ -131,5 +155,17 @@
         <!-- Settings component would go here -->
       {/if}
     </main>
+    
+    <!-- Scroll to Top Button -->
+    {#if showScrollButton}
+      <button
+        onclick={scrollToTop}
+        class="fixed bottom-4 right-4 sm:bottom-8 sm:right-8 p-2 rounded-full bg-gray-700 opacity-75 text-white shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 z-30 cursor-pointer"
+        title="Scroll to top"
+        aria-label="Scroll to top"
+      >
+        <ChevronsUp size={24} />
+      </button>
+    {/if}
   </div>
 {/if}

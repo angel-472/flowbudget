@@ -114,6 +114,7 @@
   </div>
 
   <!-- Monthly Summary -->
+   <!-- TODO: Add AI-generated month summary paragraph based on data from all transactions of that month for better insight -->
   <div class="mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-lg dark:shadow-black/20 border border-gray-100 dark:border-gray-700/50 overflow-hidden">
     <div class="px-6 py-4 bg-gradient-to-r from-indigo-400 to-purple-400 dark:from-indigo-600 dark:to-purple-600">
       <h3 class="text-lg font-bold text-white">Monthly Summary</h3>
