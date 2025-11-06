@@ -76,7 +76,7 @@
     </div>
     <button
       class="flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-white rounded-xl shadow-md transition-all duration-300
-      bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 hover:brightness-110 cursor-pointer"
+      bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-500 dark:to-purple-500 hover:brightness-110 cursor-pointer"
       aria-label="Add new item for this week"
       style="background-clip: padding-box;"
       title="Add Transaction"
