@@ -1,5 +1,5 @@
 <script>
-  import { Moon, Sun, LogOut, ChevronsUp } from "lucide-svelte"
+  import { Moon, Sun, LogOut, ChevronsUp, Plus } from "lucide-svelte"
   import { onMount } from "svelte";
   import MonthView from "./components/MonthView.svelte";
   import TransactionForm from './components/TransactionForm.svelte';
@@ -167,5 +167,14 @@
         <ChevronsUp size={24} />
       </button>
     {/if}
+
+    <!-- Add transaction shortcut -->
+    <button
+      class="fixed bottom-20 right-4 sm:bottom-8 sm:right-8 p-3 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-500 dark:to-purple-500 text-white shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 z-30 cursor-pointer"
+      title="Add Transaction"
+      onclick={() => signal.emit("OPEN_TRANSACTION_FORM", {isNewTransaction: true})}
+    >
+      <Plus size={20} />
+    </button>
   </div>
 {/if}
