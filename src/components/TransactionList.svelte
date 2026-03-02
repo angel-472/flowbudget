@@ -1,21 +1,17 @@
 <script>
-  import { Check, Square, Trash, FilePenLine } from 'lucide-svelte';
+  import { Check, Square, Trash2, Pencil } from 'lucide-svelte';
   import { formatDate, formatCurrency } from '/src/api/utils';
   import { dateUtils } from '/src/api/dateUtils';
   import { budgetApi } from '/src/api/budgetApi.svelte.js';
   import { signal } from '/src/api/signal.js';
   
   let { type, transactions } = $props();
-  const isIncome = type === 'incomes';
-  const colorClass = isIncome ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
-  const bgColorClass = isIncome ? 'bg-green-50 dark:bg-green-900/30' : 'bg-red-50 dark:bg-red-900/30';
+  let isIncome = $derived(type === 'incomes');
 
-  // Delete confirmation modal state
   let showDeleteModal = $state(false);
   let transactionToDelete = $state(null);
 
   async function handleToggleStatus(id) {
-    // Create a new array with the updated transaction status
     transactions = transactions.map(t => 
       t.id === id 
         ? { ...t, status: t.status === 'done' ? 'pending' : 'done' }
@@ -26,10 +22,7 @@
   
   function handleEditTransaction(id) {
     const transaction = transactions.find(t => t.id === id);
-    if(transaction){
-      // Emit signal to open transaction form with the selected transaction data
-      signal.emit("OPEN_TRANSACTION_FORM", { transaction });
-    }
+    if (transaction) signal.emit("OPEN_TRANSACTION_FORM", { transaction });
   }
 
   function handleDeleteTransaction(id) {
@@ -56,59 +49,65 @@
 </script>
 
 {#if transactions.length === 0}
-  <div class="flex flex-1 text-sm items-center justify-center p-6 py-3 {bgColorClass} rounded-xl border border-gray-200 dark:border-gray-700/50 gap-2 h-12 w-full md:w-1/2">
-    <!-- <span>{isIncome ? '💸' : '🛒'}</span> -->
-    <p class="{colorClass} text-center">No {isIncome ? 'incomes' : 'expenses'} recorded yet.</p>
+  <div class="flex flex-1 items-center justify-center py-4 w-full md:w-1/2">
+    <p class="text-xs text-gray-400 dark:text-gray-500">No {isIncome ? 'income' : 'expenses'} yet</p>
   </div>
 {:else}
-  <div class="w-full md:w-1/2 overflow-x-clip">
-    <!-- Todo: Open edit / delete modal when you tap a transaction -->
-    <h4 class="text-lg font-semibold {colorClass}">{isIncome ? 'Incomes' : 'Expenses'}</h4>
-    <h5 class="text-sm font-semibold mb-2 text-gray-500 dark:text-gray-400">Total: <span class="font-normal">{formatCurrency(transactions.reduce((sum, t) => sum + t.amount, 0))}</span></h5>
-    <div class="flex flex-col max-h-94 overflow-y-auto">
+  <div class="w-full md:w-1/2">
+    <div class="flex items-baseline justify-between mb-2">
+      <h4 class="text-xs font-semibold uppercase tracking-wider {isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}">
+        {isIncome ? 'Income' : 'Expenses'}
+      </h4>
+      <span class="text-xs text-gray-400 dark:text-gray-500">
+        {formatCurrency(transactions.reduce((sum, t) => sum + t.amount, 0))}
+      </span>
+    </div>
+    <div class="flex flex-col max-h-80 overflow-y-auto">
       {#each transactions.toSorted((a, b) => new Date(a.date) - new Date(b.date)) as t (t.id)}
-        <div class="flex flex-row gap-4 justify-between rounded-md p-2 border-b-1 border-gray-100 dark:border-gray-700/50 dark:hover:bg-gray-700/50 hover:bg-gray-200/50 transition-all duration-150 ease-in-out">
-          <!-- Left side: Description + Category -->
-          <div class="flex flex-col flex-1 gap-0.5 justify-between">
-            <div class="flex gap-2 items-start">
-                <!-- Pending / done checkmark -->
-                <button
-                class="p-1 rounded-md {t.status === 'done' ? 'text-gray-800 bg-gray-200 dark:text-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600' : 'text-gray-400 hover:text-gray-800 hover:bg-white dark:hover:text-gray-200 dark:hover:bg-gray-800'} transition"
-                title={t.status === 'done' ? 'Mark as Pending' : 'Mark as Done'}
-                onclick={() => handleToggleStatus(t.id)}
-                >
-                {#if t.status === 'done'}
-                  <Check size={14} />
-                {:else}
-                  <Square size={14} />
-                {/if}
-              </button>
-              <p class="font-bold wrap-break-word max-w-53 sm:max-w-none">{t.description}</p>
-            </div>
-            <p class="text-gray-500 dark:text-gray-400 text-sm">{t.category !== undefined && t.category !== "" ? t.category : "No Category"}</p>
+        <div class="group flex items-center gap-3 py-2 px-1 border-b border-gray-100 dark:border-gray-800 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded transition-colors">
+          <!-- Status toggle -->
+          <button
+            class="shrink-0 p-0.5 rounded {t.status === 'done' ? 'text-gray-400 dark:text-gray-500' : 'text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400'} transition-colors cursor-pointer"
+            title={t.status === 'done' ? 'Mark as Pending' : 'Mark as Done'}
+            onclick={() => handleToggleStatus(t.id)}
+          >
+            {#if t.status === 'done'}
+              <Check size={14} />
+            {:else}
+              <Square size={14} />
+            {/if}
+          </button>
+
+          <!-- Description + category -->
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+              {t.description}
+            </p>
+            <p class="text-xs text-gray-400 dark:text-gray-500">
+              {t.category || 'Uncategorized'} · {dateUtils.createLocalDate(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            </p>
           </div>
           
-          <!-- Right side: Amount + Date -->
-          <div class="flex flex-col items-end justify-between">
-            <p class="text-sm font-semibold {colorClass}">
-                {formatCurrency(t.amount)}
-            </p>
-            <p class="text-gray-500 dark:text-gray-400 text-sm">{dateUtils.createLocalDate(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
-          </div>
+          <!-- Amount -->
+          <span class="text-sm font-medium tabular-nums {isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}">
+            {formatCurrency(t.amount)}
+          </span>
 
-          <!-- Edit Button -->
-          <div class="flex flex-col gap-2 justify-center text-gray-500 dark:text-gray-400 ">
-             <button class="hover:text-gray-800 dark:hover:text-gray-200 cursor-pointer"
-             onclick={() => { handleEditTransaction(t.id); }}
-             title="Edit Transaction"
-             >
-              <FilePenLine size={18} />
-            </button>
-            <button class="hover:text-gray-800 dark:hover:text-gray-200 cursor-pointer"
-            onclick={() => { handleDeleteTransaction(t.id); }}
-            title="Delete Transaction"
+          <!-- Actions -->
+          <div class="flex gap-0.5">
+            <button
+              class="p-1 rounded text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 cursor-pointer"
+              onclick={() => handleEditTransaction(t.id)}
+              title="Edit"
             >
-              <Trash size={18} />
+              <Pencil size={14} />
+            </button>
+            <button
+              class="p-1 rounded text-gray-400 hover:text-red-600 dark:hover:text-red-400 cursor-pointer"
+              onclick={() => handleDeleteTransaction(t.id)}
+              title="Delete"
+            >
+              <Trash2 size={14} />
             </button>
           </div>
         </div>
@@ -117,27 +116,24 @@
   </div>
 {/if}
 
-<!-- Delete Confirmation Modal -->
+<!-- Delete confirmation -->
 {#if showDeleteModal && transactionToDelete}
-  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
-      <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">
-        Delete Transaction
-      </h3>
-      <p class="text-gray-600 dark:text-gray-400 mb-6">
-        Are you sure you want to delete "<span class="font-medium">{transactionToDelete.description}</span>"? 
-        This action cannot be undone.
+  <div class="fixed inset-0 bg-black/40 dark:bg-black/60 flex items-center justify-center z-50 p-4">
+    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-5 max-w-sm w-full">
+      <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">Delete transaction</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-5">
+        Delete "<span class="font-medium text-gray-700 dark:text-gray-300">{transactionToDelete.description}</span>"? This can't be undone.
       </p>
-      <div class="flex justify-end space-x-3">
+      <div class="flex justify-end gap-2">
         <button
           onclick={closeDeleteModal}
-          class="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+          class="px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
         >
           Cancel
         </button>
         <button
           onclick={confirmDelete}
-          class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+          class="px-3 py-1.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors cursor-pointer"
         >
           Delete
         </button>

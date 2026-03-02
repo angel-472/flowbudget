@@ -1,5 +1,5 @@
 <script>
-  import { Moon, Sun, LogOut, ChevronsUp, Plus } from "lucide-svelte"
+  import { Moon, Sun, LogOut, ArrowUp, Plus } from "lucide-svelte"
   import { onMount } from "svelte";
   import MonthView from "./components/MonthView.svelte";
   import TransactionForm from './components/TransactionForm.svelte';
@@ -9,94 +9,67 @@
   import { budgetApi } from "./api/budgetApi.svelte.js";
   import { dateUtils } from '/src/api/dateUtils.js';
 
-  //
-  // Dark mode state management
-  // 
+  // ── Dark mode ──
   let darkMode = $state(false);
 
-  // Check localStorage or system preference for initial dark mode value
   if (localStorage.getItem('darkMode') !== null) {
     darkMode = localStorage.getItem('darkMode') === 'true';
     // svelte-ignore state_referenced_locally
     document.documentElement.classList.toggle('dark', darkMode);
-    // svelte-ignore state_referenced_locally
-    console.log(`${darkMode ? '🌙' : '☀️'} Dark mode from localStorage: ${darkMode ? 'Enabled' : 'Disabled'}`);
   } else {
     darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
     // svelte-ignore state_referenced_locally
     document.documentElement.classList.toggle('dark', darkMode);
-    // svelte-ignore state_referenced_locally
-    console.log(`${darkMode ? '🌙' : '☀️'} System preference for dark mode: ${darkMode ? 'Enabled' : 'Disabled'}`);
   }
 
   function toggleDarkMode() {
     darkMode = !darkMode;
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('darkMode', 'true');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('darkMode', 'false');
-    }
-  };
+    document.documentElement.classList.toggle('dark', darkMode);
+    localStorage.setItem('darkMode', String(darkMode));
+  }
 
-  // 
-  // User authentication state
-  // 
+  // ── Auth state ──
   let user = $state(null);
   let userId = $derived(user ? user.id : null);
   let isLoading = $state(true);
   getCurrentUser().then(currentUser => {
     user = currentUser;
-    if(user == null){
-      isLoading = false; // stops loading to allow use of auth screen
-    }
+    if (user == null) isLoading = false;
   });
-  let currentView = $state("month"); // Possible values: "month", "dashboard", "settings"
+  let currentView = $state("month");
 
   onAuthStateChange((event, session) => {
     if (event === 'SIGNED_IN' && user == null) {
-      isLoading = true; // wait for database sync
+      isLoading = true;
       user = session.user;
       userId = session.user.id;
-      console.log("User signed in:", userId);
       budgetApi.fetchAllTransactions().then(() => {
-        isLoading = false; // stops loading screen when transactions are fetched after sign in
-      }); // Fetches all transactions, not that scalable but fine for demo purposes
+        isLoading = false;
+      });
     } else if (event === 'SIGNED_OUT') {
       user = null;
       userId = null;
-      console.log("User signed out");
     }
   });
 
   async function handleSignOut() {
     await signOut();
     userId = null;
-    console.log("User signed out 😡");
   }
   
-  // Scroll to top functionality
+  // ── Scroll to top ──
   let showScrollButton = $state(false);
   
   onMount(() => {
     const handleScroll = () => {
-      // Show button when scrolled down 300px
       showScrollButton = window.scrollY > 600;
     };
-    
     window.addEventListener('scroll', handleScroll);
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    return () => window.removeEventListener('scroll', handleScroll);
   });
   
   function scrollToTop() {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function handleAddTransaction() {
@@ -114,82 +87,80 @@
   }
 </script>
 
-<!-- TODO: Show something while isLoading -->
 {#if isLoading}
-  <div class="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
-    <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 dark:border-indigo-400"></div>
+  <div class="flex items-center justify-center min-h-screen">
+    <div class="flex flex-col items-center gap-3">
+      <div class="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-indigo-600 dark:border-gray-700 dark:border-t-indigo-400"></div>
+      <p class="text-sm text-gray-400 dark:text-gray-500">Loading...</p>
+    </div>
   </div>
 {:else if !user}
   <AuthScreen />
 {:else}
   <TransactionForm />
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-    <header class="sticky top-0 z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md shadow-lg px-5 py-3 flex items-center justify-between border-b border-gray-200/30 dark:border-gray-700/30">
-      <!-- App Name -->
-      <h1 class="text-xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">FlowBudget</h1>
-      
-      <!-- Header options -->
-      <div class="flex items-center gap-3">
-        <!-- User email -->
-        <div class="hidden md:flex items-center px-4 py-1.5 rounded-full bg-gray-50/70 dark:bg-gray-700/50 border border-gray-200/50 dark:border-gray-600/30 shadow-sm backdrop-blur-sm">
-          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{user.email}</span>
+  <div class="min-h-screen">
+    <!-- Header -->
+    <header class="sticky top-0 z-20 bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 px-4 sm:px-6">
+      <div class="flex items-center justify-between h-14 max-w-5xl mx-auto">
+        <h1 class="text-lg font-semibold tracking-tight text-gray-900 dark:text-gray-100">FlowBudget</h1>
+        
+        <div class="flex items-center gap-1">
+          <span class="hidden md:block text-sm text-gray-500 dark:text-gray-400 mr-2">{user.email}</span>
+          
+          <button
+            onclick={toggleDarkMode}
+            class="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+            title="Toggle theme"
+          >
+            {#if darkMode}
+              <Sun size={18} />
+            {:else}
+              <Moon size={18} />
+            {/if}
+          </button>
+          
+          <button
+            class="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+            onclick={handleSignOut}
+            title="Sign Out"
+          >
+            <LogOut size={18} />
+          </button>
         </div>
-        
-        <!-- Dark mode toggle -->
-        <button
-          onclick={toggleDarkMode}
-          class="p-2 rounded-full text-gray-700 dark:text-gray-200 hover:bg-gray-100/70 dark:hover:bg-gray-700/70 transition-all duration-300 shadow-sm border border-gray-200/50 dark:border-gray-600/30 backdrop-blur-sm cursor-pointer"
-          title="Toggle Dark Mode"
-        >
-          {#if darkMode}
-            <Sun width={18} height={18} class="drop-shadow-sm" />
-          {:else}
-            <Moon width={18} height={18} class="drop-shadow-sm" />
-          {/if}
-        </button>
-        
-        <!-- Sign out button -->
-        <button
-          class="flex items-center gap-1.5 text-sm text-red-600 dark:text-red-400 hover:text-red-500 dark:hover:text-red-300 font-medium py-1.5 px-3 rounded-lg hover:bg-red-50/70 dark:hover:bg-red-900/30 transition-all duration-300 shadow-sm border border-red-200/50 dark:border-red-800/30 backdrop-blur-sm cursor-pointer"
-          onclick={handleSignOut}
-          title="Sign Out"
-        >
-          <LogOut size={18} class="drop-shadow-sm" />
-          <span class="hidden sm:inline">Sign Out</span>
-        </button>
       </div>
     </header>
-    <main>
+
+    <!-- Main content -->
+    <main class="max-w-5xl mx-auto">
       {#if currentView === "month"}
         <MonthView />
       {:else if currentView === "dashboard"}
-        <h2 class="text-center text-2xl font-bold text-gray-800 dark:text-gray-200 p-4">Dashboard</h2>
-        <!-- Dashboard component would go here -->
+        <h2 class="text-center text-xl font-medium p-8">Dashboard</h2>
       {:else if currentView === "settings"}
-        <h2 class="text-center text-2xl font-bold text-gray-800 dark:text-gray-200 p-4">Settings</h2>
-        <!-- Settings component would go here -->
+        <h2 class="text-center text-xl font-medium p-8">Settings</h2>
       {/if}
     </main>
     
-    <!-- Scroll to Top Button -->
-    {#if showScrollButton}
-      <button
-        onclick={scrollToTop}
-        class="fixed bottom-4 right-4 sm:bottom-8 sm:right-8 p-2 rounded-full bg-gray-700 opacity-75 text-white shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 z-30 cursor-pointer"
-        title="Scroll to top"
-        aria-label="Scroll to top"
-      >
-        <ChevronsUp size={24} />
-      </button>
-    {/if}
+    <!-- Floating actions -->
+    <div class="fixed bottom-6 right-6 flex flex-col gap-2 z-30">
+      {#if showScrollButton}
+        <button
+          onclick={scrollToTop}
+          class="p-2.5 rounded-full bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 shadow-md border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 active:scale-95 transition-all cursor-pointer"
+          title="Scroll to top"
+          aria-label="Scroll to top"
+        >
+          <ArrowUp size={18} />
+        </button>
+      {/if}
 
-    <!-- Add transaction shortcut -->
-    <button
-      class="fixed left-1/2 transform -translate-x-1/2 bottom-4 p-3 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-500 dark:to-purple-500 text-white shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 z-30 cursor-pointer w-32 flex items-center justify-center gap-2"
-      title="Add Transaction"
-      onclick={() => handleAddTransaction()}
-    >
-      <Plus size={20} />
-    </button>
+      <button
+        class="p-3 rounded-full bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white shadow-lg shadow-indigo-600/20 dark:shadow-indigo-500/20 active:scale-95 transition-all cursor-pointer"
+        title="Add Transaction"
+        onclick={() => handleAddTransaction()}
+      >
+        <Plus size={20} />
+      </button>
+    </div>
   </div>
 {/if}

@@ -6,40 +6,26 @@
   import WeekCard from './WeekCard.svelte';
   import { onMount } from 'svelte';
   
-  // Mock state variables
   let currentMonth = $state(new Date().getMonth());
   let currentYear = $state(new Date().getFullYear());
   
-  // Compute month name
   let monthName = $derived(new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long' }));
+  let isCurrentMonth = $derived(currentMonth === new Date().getMonth() && currentYear === new Date().getFullYear());
   
-  // Month navigation functions
   function selectPrevMonth() {  
-    if (currentMonth === 0) {
-      currentMonth = 11;
-      currentYear--;
-    } else {
-      currentMonth--;
-    }
+    if (currentMonth === 0) { currentMonth = 11; currentYear--; }
+    else currentMonth--;
   }
   
   function selectNextMonth() {
-    if (currentMonth === 11) {
-      currentMonth = 0;
-      currentYear++;
-    } else {
-      currentMonth++;
-    }
+    if (currentMonth === 11) { currentMonth = 0; currentYear++; }
+    else currentMonth++;
   }
 
-  // Add 1 to currentMonth when passing to getWeeksInMonth since it expects 1-12 instead of 0-11)
   let weeksInMonth = $derived(dateUtils.getWeeksInMonth(currentYear, currentMonth + 1));
   
-  // Calculate monthly summary
   let monthlySummary = $derived.by(() => {
     let allTransactions = budgetApi.getAllTransactions();
-    
-    // Filter transactions for current month
     let monthTransactions = allTransactions.filter(t => {
       let transactionDate = dateUtils.createLocalDate(t.date);
       return transactionDate.getMonth() === currentMonth && 
@@ -49,17 +35,14 @@
     let totalIncome = monthTransactions
       .filter(t => t.type === 'incomes')
       .reduce((sum, t) => sum + t.amount, 0);
-      
     let totalExpenses = monthTransactions
       .filter(t => t.type === 'expenses')
       .reduce((sum, t) => sum + t.amount, 0);
       
-    let net = totalIncome - totalExpenses;
-    
     return {
       income: totalIncome,
       expenses: totalExpenses,
-      net: net,
+      net: totalIncome - totalExpenses,
       transactionCount: monthTransactions.length
     };
   });
@@ -68,79 +51,64 @@
     const element = document.getElementById(id);
     var elementPosition = element.getBoundingClientRect().top;
     var offsetPosition = elementPosition + window.pageYOffset - offset;
-
-    window.scrollTo({
-         top: offsetPosition,
-         behavior: smooth ? "smooth" : "auto"
-    });
+    window.scrollTo({ top: offsetPosition, behavior: smooth ? "smooth" : "auto" });
   }
 
-  // Scroll to current week when loading into page
   onMount(() => {
     let weekNumber = dateUtils.getWeekNumber(dateUtils.createLocalDate(new Date().toISOString().split('T')[0]));
-    scrollTo(`week-view-${weekNumber}`, (67 + 16), false); // 67px header + 16px padding
+    scrollTo(`week-view-${weekNumber}`, 80, false);
   });
 </script>
 
-<div class="flex-1 p-4 sm:p-6 lg:p-8">
-  <!-- Month Selector -->
-  <header class="flex justify-between items-center mb-8 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md dark:shadow-lg dark:shadow-black/20 top-0 z-10 border border-gray-100 dark:border-gray-700/50">
-    <div class="flex items-center space-x-4 justify-center w-full">
-      <button
-        onclick={selectPrevMonth}
-        class="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition cursor-pointer"
-        title="Previous Month"
-      >
-        <ChevronLeft size={24} />
-      </button>
-      <h2 class="text-3xl font-extrabold transition duration-0 w-70 text-center {currentMonth == new Date().getMonth() && currentYear == new Date().getFullYear() ? 'bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent' : 'text-gray-900 dark:text-white'}">
+<div class="px-4 sm:px-6 py-6">
+  <!-- Month navigation -->
+  <div class="flex items-center justify-between mb-6">
+    <button
+      onclick={selectPrevMonth}
+      class="p-2 rounded-lg text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+      title="Previous Month"
+    >
+      <ChevronLeft size={20} />
+    </button>
+    <div class="text-center">
+      <h2 class="text-xl font-semibold tracking-tight {isCurrentMonth ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-900 dark:text-gray-100'}">
         {monthName} {currentYear}
       </h2>
-      <button
-        onclick={selectNextMonth}
-        class="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition cursor-pointer"
-        title="Next Month"
-      >
-        <ChevronRight size={24} />
-      </button>
+      <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+        {monthlySummary.transactionCount} transaction{monthlySummary.transactionCount !== 1 ? 's' : ''}
+      </p>
     </div>
-  </header>
+    <button
+      onclick={selectNextMonth}
+      class="p-2 rounded-lg text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+      title="Next Month"
+    >
+      <ChevronRight size={20} />
+    </button>
+  </div>
+
+  <!-- Monthly summary bar -->
+  <div class="grid grid-cols-3 gap-px bg-gray-200 dark:bg-gray-800 rounded-lg overflow-hidden mb-8 border border-gray-200 dark:border-gray-800">
+    <div class="bg-white dark:bg-gray-900 px-4 py-3 text-center">
+      <p class="text-xs text-gray-400 dark:text-gray-500 mb-0.5">Income</p>
+      <p class="text-sm font-semibold text-emerald-600 dark:text-emerald-400">{formatCurrency(monthlySummary.income)}</p>
+    </div>
+    <div class="bg-white dark:bg-gray-900 px-4 py-3 text-center">
+      <p class="text-xs text-gray-400 dark:text-gray-500 mb-0.5">Expenses</p>
+      <p class="text-sm font-semibold text-red-600 dark:text-red-400">{formatCurrency(monthlySummary.expenses)}</p>
+    </div>
+    <div class="bg-white dark:bg-gray-900 px-4 py-3 text-center">
+      <p class="text-xs text-gray-400 dark:text-gray-500 mb-0.5">Net</p>
+      <p class="text-sm font-semibold {monthlySummary.net >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}">
+        {formatCurrency(monthlySummary.net)}
+      </p>
+    </div>
+  </div>
   
-  <!-- Week Cards -->
-  <div class="flex flex-col gap-8">
+  <!-- Week cards -->
+  <div class="flex flex-col gap-4">
     {#each weeksInMonth as weekNumber (weekNumber)}
       <WeekCard {weekNumber} {currentMonth} {currentYear}/>
     {/each}
-  </div>
-
-  <!-- Monthly Summary -->
-   <!-- TODO: Add AI-generated month summary paragraph based on data from all transactions of that month for better insight -->
-  <div class="mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-lg dark:shadow-black/20 border border-gray-100 dark:border-gray-700/50 overflow-hidden">
-    <div class="px-6 py-4 bg-gradient-to-r from-indigo-400 to-purple-400 dark:from-indigo-600 dark:to-purple-600">
-      <h3 class="text-lg font-bold text-white">Monthly Summary</h3>
-      <p class="text-sm text-indigo-100 dark:text-indigo-200">{monthlySummary.transactionCount} transactions</p>
-    </div>
-    
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-6">
-      <!-- Total Income -->
-      <div class="bg-green-50 dark:bg-green-900/30 rounded-lg p-4 border border-gray-200 dark:border-gray-700/50">
-        <p class="text-sm font-medium text-green-600 dark:text-green-400 mb-1">Total Income</p>
-        <p class="text-2xl font-bold text-green-700 dark:text-green-300">{formatCurrency(monthlySummary.income)}</p>
-      </div>
-      
-      <!-- Total Expenses -->
-      <div class="bg-red-50 dark:bg-red-900/30 rounded-lg p-4 border border-gray-200 dark:border-gray-700/50">
-        <p class="text-sm font-medium text-red-600 dark:text-red-400 mb-1">Total Expenses</p>
-        <p class="text-2xl font-bold text-red-700 dark:text-red-300">{formatCurrency(monthlySummary.expenses)}</p>
-      </div>
-      
-      <!-- Net -->
-      <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700/50">
-        <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Net</p>
-        <p class="text-2xl font-bold {monthlySummary.net >= 0 ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}">
-          {formatCurrency(monthlySummary.net)}
-        </p>
-      </div>
-    </div>
   </div>
 </div>

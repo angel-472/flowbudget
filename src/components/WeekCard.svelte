@@ -6,20 +6,15 @@
   import { signal } from '/src/api/signal.js';
   import { onDestroy, onMount } from 'svelte';
   import TransactionList from './TransactionList.svelte';
-  
-
 
   let props = $props();
   let weekNumber = props.weekNumber ?? 1;
   let currentMonth = props.currentMonth ?? 1;
   let currentYear = props.currentYear ?? 2023;
 
-  let cardStyles = "bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md dark:shadow-lg dark:shadow-black/20 border border-gray-100 dark:border-gray-700/50";
   let dateRange = dateUtils.getWeekDateRange(currentYear, weekNumber);
 
   function openAddItemModal() {
-    // Placeholder function for opening a modal to add a new item
-    console.log(`Open modal to add new item for Week ${weekNumber}`);
     signal.emit("OPEN_TRANSACTION_FORM", {
       transaction: {
         id: null,
@@ -50,7 +45,7 @@
     });
     signal.sub("UPDATE_TRANSACTION", signalSubId, (data) => {
       let weekOfTransaction = dateUtils.getWeekNumber(dateUtils.createLocalDate(data.transaction.date));
-      if(weekOfTransaction === weekNumber){
+      if (weekOfTransaction === weekNumber) {
         updateTransactionData();
       }
     });
@@ -68,30 +63,45 @@
   }); 
 </script>
 
-<article class="flex flex-1 flex-col {cardStyles}" id="week-view-{weekNumber}">
-  <header class="flex items-center justify-between w-full pb-3 mb-4 border-b border-gray-200 dark:border-gray-700">
-    <div>
-      <h2 class="font-extrabold {isCurrentWeek ? 'bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent is-current-week' : ''}">{dateRange[0].toLocaleString('default', { month: 'short' })} {dateRange[0].getDate()} – {dateRange[6].toLocaleString('default', { month: 'short' })} {dateRange[6].getDate()}</h2>
-      <p class="text-sm text-gray-500 dark:text-gray-400">W{weekNumber}</p>
+<article
+  class="border rounded-lg {isCurrentWeek ? 'border-indigo-300 dark:border-indigo-800 bg-indigo-50/30 dark:bg-indigo-950/20' : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900'}"
+  id="week-view-{weekNumber}"
+>
+  <!-- Header -->
+  <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+    <div class="flex items-baseline gap-2">
+      <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+        {dateRange[0].toLocaleString('default', { month: 'short' })} {dateRange[0].getDate()} – {dateRange[6].toLocaleString('default', { month: 'short' })} {dateRange[6].getDate()}
+      </h2>
+      <span class="text-xs text-gray-400 dark:text-gray-500">W{weekNumber}</span>
+      {#if isCurrentWeek}
+        <span class="text-xs font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/50 px-1.5 py-0.5 rounded">now</span>
+      {/if}
     </div>
     <button
-      class="flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-white rounded-xl shadow-md transition-all duration-300
-      bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-500 dark:to-purple-500 hover:brightness-110 cursor-pointer"
+      class="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 rounded-md border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
       aria-label="Add new item for this week"
-      style="background-clip: padding-box;"
       title="Add Transaction"
       onclick={openAddItemModal}
     >
-      <Plus size={18}/>
-      <span >Add</span>
+      <Plus size={14} />
+      <span>Add</span>
     </button>
-  </header>
-  <div class="flex flex-col md:flex-row gap-6 pb-4 mb-4 border-b border-gray-200 dark:border-gray-700">
-    <TransactionList type="incomes" transactions={incomes} />
-    <TransactionList type="expenses" transactions={expenses} />
   </div>
-  <footer class="flex gap-2 text-sm justify-between">
-    <h3 class="font-semibold">Weekly Total:</h3>
-    <p class="font-bold {weeklyNet < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}">{formatCurrency(weeklyNet)}</p>
-  </footer>
+
+  <!-- Content -->
+  <div class="px-4 py-3">
+    <div class="flex flex-col md:flex-row gap-4 divide-y md:divide-y-0 md:divide-x divide-gray-100 dark:divide-gray-800">
+      <TransactionList type="incomes" transactions={incomes} />
+      <TransactionList type="expenses" transactions={expenses} />
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="flex items-center justify-between px-4 py-2.5 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 rounded-b-lg">
+    <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Weekly net</span>
+    <span class="text-sm font-semibold {weeklyNet < 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}">
+      {formatCurrency(weeklyNet)}
+    </span>
+  </div>
 </article>
