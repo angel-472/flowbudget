@@ -7,6 +7,7 @@
   import { getCurrentUser, onAuthStateChange, signOut } from "./api/auth";
   import { signal } from "./api/signal";
   import { budgetApi } from "./api/budgetApi.svelte.js";
+  import { dateUtils } from '/src/api/dateUtils.js';
 
   //
   // Dark mode state management
@@ -97,6 +98,20 @@
       behavior: 'smooth'
     });
   }
+
+  function handleAddTransaction() {
+    signal.emit("OPEN_TRANSACTION_FORM", {
+      transaction: {
+        id: null,
+        type: 'expenses',
+        date: new Date().toLocaleDateString('en-CA'),
+        description: '',
+        amount: '',
+        category: '',
+        status: 'pending'
+      }
+    });
+  }
 </script>
 
 <!-- TODO: Show something while isLoading -->
@@ -170,9 +185,9 @@
 
     <!-- Add transaction shortcut -->
     <button
-      class="fixed bottom-20 right-4 sm:bottom-8 sm:right-8 p-3 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-500 dark:to-purple-500 text-white shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 z-30 cursor-pointer"
+      class="fixed left-1/2 transform -translate-x-1/2 bottom-4 p-3 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-500 dark:to-purple-500 text-white shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 z-30 cursor-pointer w-32 flex items-center justify-center gap-2"
       title="Add Transaction"
-      onclick={() => signal.emit("OPEN_TRANSACTION_FORM", {isNewTransaction: true})}
+      onclick={() => handleAddTransaction()}
     >
       <Plus size={20} />
     </button>
