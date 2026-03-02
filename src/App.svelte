@@ -54,7 +54,7 @@
   let currentView = $state("month"); // Possible values: "month", "dashboard", "settings"
 
   onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_IN') {
+    if (event === 'SIGNED_IN' && user == null) {
       isLoading = true; // wait for database sync
       user = session.user;
       userId = session.user.id;
