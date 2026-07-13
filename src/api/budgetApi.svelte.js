@@ -36,7 +36,7 @@ class BudgetApi {
       status: data.status || 'pending'
     };
     this.transactions.push(newTransaction);
-    this.#queueUpsert(newTransaction);
+    this.#queueUpsert(newTransaction); //queues the update in syncQueue but also persists the current transactions to localCache
   }
   deleteTransaction(id) {
     let transaction = this.getTransactionById(id);
@@ -46,7 +46,7 @@ class BudgetApi {
     }
     this.transactions = this.transactions.filter(t => t.id !== id);
     signal.emit("UPDATE_TRANSACTION", {transaction});
-    syncQueue.enqueue('delete', id);
+    syncQueue.enqueue('transaction', 'delete', id);
     this.#persist();
   }
   toggleTransactionStatus(id) {
@@ -102,7 +102,7 @@ class BudgetApi {
     localCache.clear();
   }
   #queueUpsert(transaction) {
-    syncQueue.enqueue('upsert', transaction.id, $state.snapshot(transaction));
+    syncQueue.enqueue('transaction', 'upsert', transaction.id, $state.snapshot(transaction));
     this.#persist();
   }
   #persist() {
