@@ -76,6 +76,29 @@ export async function getCurrentUser() {
 }
 
 /**
+ * Resolve the current user while telling "signed out" apart from "unreachable".
+ * A network failure must not sign a cached user out of the app.
+ * @returns {Promise<{user: Object|null, offline: boolean}>}
+ */
+export async function getCurrentUserResult() {
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    if (error) {
+      const offline = !navigator.onLine
+        || error.name === 'AuthRetryableFetchError'
+        || !error.status
+        || error.status >= 500;
+      if (!offline) console.warn('FlowBudget Auth: session rejected:', error.message);
+      return { user: null, offline };
+    }
+    return { user: data.user ?? null, offline: false };
+  } catch (error) {
+    console.warn('FlowBudget Auth: could not reach Supabase:', error);
+    return { user: null, offline: true };
+  }
+}
+
+/**
  * Check if user is authenticated
  * @returns {Promise<boolean>} True if authenticated
  */

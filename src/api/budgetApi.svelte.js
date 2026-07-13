@@ -1,8 +1,8 @@
-import { getCurrentUser } from "./auth.js";
 import { databaseApi } from "./databaseApi.js";
 import { dateUtils } from "./dateUtils.js";
+import { localCache } from "./localCache.js";
 import { signal } from "./signal.js";
-import { getCurrentUserId } from "./supabaseClient.js";
+import { syncQueue } from "./syncQueue.js";
 
 // Polyfill to generate a UUID (if crypto.randomUUID is not available)
 if (!crypto.randomUUID) {
@@ -17,12 +17,13 @@ if (!crypto.randomUUID) {
 
 class BudgetApi {
   constructor(){
-    this.transactions = $state([]);
+    this.transactions = $state(localCache.loadTransactions());
+    this.syncing = null;
   }
   getAllTransactions() {
     return this.transactions;
   }
-  async addTransaction(data) {
+  addTransaction(data) {
     console.log('Adding transaction with data:', data);
     let newTransaction = {
       id: data.id || crypto.randomUUID(),
@@ -34,11 +35,9 @@ class BudgetApi {
       status: data.status || 'pending'
     };
     this.transactions.push(newTransaction);
-    console.log('pushed');
-    await databaseApi.upsertTransaction(newTransaction);
-    console.log('upserted');
+    this.#queueUpsert(newTransaction);
   }
-  async deleteTransaction(id) {
+  deleteTransaction(id) {
     let transaction = this.getTransactionById(id);
     if(!transaction) {
       console.warn(`Transaction with id '${id}' not found for deletion.`);
@@ -46,20 +45,21 @@ class BudgetApi {
     }
     this.transactions = this.transactions.filter(t => t.id !== id);
     signal.emit("UPDATE_TRANSACTION", {transaction});
-    await databaseApi.deleteTransaction(id);
+    syncQueue.enqueue('delete', id);
+    this.#persist();
   }
-  async toggleTransactionStatus(id) {
+  toggleTransactionStatus(id) {
     const transaction = this.getTransactionById(id);
     if (transaction) {
       transaction.status = transaction.status === 'done' ? 'pending' : 'done';
       signal.emit("UPDATE_TRANSACTION", {transaction});
-      await databaseApi.upsertTransaction(transaction);
+      this.#queueUpsert(transaction);
     }
   }
-  async updateTransaction(id) {
+  updateTransaction(id) {
     const transaction = this.getTransactionById(id);
     if (transaction) {
-      await databaseApi.upsertTransaction(transaction);
+      this.#queueUpsert(transaction);
     }
   }
   getTransactionsForWeek(year, weekNumber, type) {
@@ -77,11 +77,35 @@ class BudgetApi {
   getTransactionById(id){
     return this.transactions.find(t => t.id === id);
   }
-  async fetchAllTransactions() {
+  /**
+   * Pushes queued writes, then pulls the server's copy. Anything still queued is
+   * replayed on top of the fetched rows, so an unsynced local edit survives.
+   */
+  sync() {
+    this.syncing ??= this.#sync().finally(() => { this.syncing = null; });
+    return this.syncing;
+  }
+  async #sync() {
+    await syncQueue.flush();
     const data = await databaseApi.getAllTransactions();
-    budgetApi.transactions = data || [];
-    console.log(`💾 Loaded ${budgetApi.transactions.length} transactions into Budget API`);
-    signal.emit('TRANSACTIONS_FETCH_ALL', data);
+    const merged = syncQueue.applyTo(data || []);
+    this.transactions = merged;
+    this.#persist();
+    console.log(`💾 Loaded ${merged.length} transactions into Budget API`);
+    signal.emit('TRANSACTIONS_FETCH_ALL', merged);
+  }
+  /** Drops every trace of the signed-out user's data. */
+  reset() {
+    this.transactions = [];
+    syncQueue.clear();
+    localCache.clear();
+  }
+  #queueUpsert(transaction) {
+    syncQueue.enqueue('upsert', transaction.id, $state.snapshot(transaction));
+    this.#persist();
+  }
+  #persist() {
+    localCache.saveTransactions($state.snapshot(this.transactions));
   }
 }
 

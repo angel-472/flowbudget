@@ -1,13 +1,16 @@
 <script>
   import { Moon, Sun, LogOut, ArrowUp, Plus, Search } from "lucide-svelte"
   import { onMount } from "svelte";
+  import { fly } from "svelte/transition";
   import MonthView from "./components/MonthView.svelte";
   import TransactionForm from './components/TransactionForm.svelte';
   import SearchOverlay from './components/SearchOverlay.svelte';
   import AuthScreen from "./components/AuthScreen.svelte";
-  import { getCurrentUser, onAuthStateChange, signOut } from "./api/auth";
+  import { getCurrentUserResult, onAuthStateChange, signOut } from "./api/auth";
   import { signal } from "./api/signal";
   import { budgetApi } from "./api/budgetApi.svelte.js";
+  import { localCache } from "./api/localCache.js";
+  import { syncQueue } from "./api/syncQueue.js";
   import { dateUtils } from '/src/api/dateUtils.js';
 
   // ── Dark mode ──
@@ -30,34 +33,86 @@
   }
 
   // ── Auth state ──
-  let user = $state(null);
-  let userId = $derived(user ? user.id : null);
-  let isLoading = $state(true);
-  getCurrentUser().then(currentUser => {
-    user = currentUser;
-    if (user == null) isLoading = false;
-  });
+  // The cached session lets the app render immediately; Supabase confirms it in
+  // the background and the "Syncing…" pill covers the gap.
+  const cachedSession = localCache.loadSession();
+  let user = $state(cachedSession);
+  let isLoading = $state(cachedSession === null);
+  let isSyncing = $state(cachedSession !== null);
   let currentView = $state("month");
+
+  let connecting = null;
+  let reconnectTimer = null;
+  const RECONNECT_DELAY_MS = 15000;
+
+  function scheduleReconnect() {
+    if (reconnectTimer) return;
+    reconnectTimer = setTimeout(() => {
+      reconnectTimer = null;
+      connect();
+    }, RECONNECT_DELAY_MS);
+  }
+
+  /** Adopts a confirmed session, then pushes queued writes and pulls fresh data. */
+  async function activate(liveUser) {
+    if (user && user.id !== liveUser.id) budgetApi.reset();
+    user = liveUser;
+    localCache.saveSession(liveUser);
+    isLoading = false;
+    isSyncing = true;
+    syncQueue.setReady(true);
+    try {
+      await budgetApi.sync();
+      isSyncing = false;
+    } catch (error) {
+      console.warn('FlowBudget: sync failed, retrying shortly.', error);
+      scheduleReconnect();
+    }
+  }
+
+  function signOutLocally() {
+    syncQueue.setReady(false);
+    budgetApi.reset();
+    user = null;
+    isLoading = false;
+    isSyncing = false;
+  }
+
+  function connect() {
+    if (connecting) return connecting;
+    connecting = (async () => {
+      const { user: liveUser, offline } = await getCurrentUserResult();
+      if (liveUser) {
+        await activate(liveUser);
+      } else if (offline && user) {
+        // Cached session, unreachable server: keep serving the cache and retry.
+        scheduleReconnect();
+      } else {
+        signOutLocally();
+      }
+    })().finally(() => { connecting = null; });
+    return connecting;
+  }
+
+  connect();
 
   onAuthStateChange((event, session) => {
     if (event === 'SIGNED_IN' && user == null) {
-      isLoading = true;
-      user = session.user;
-      userId = session.user.id;
-      budgetApi.fetchAllTransactions().then(() => {
-        isLoading = false;
-      });
+      activate(session.user);
     } else if (event === 'SIGNED_OUT') {
-      user = null;
-      userId = null;
+      signOutLocally();
     }
   });
 
   async function handleSignOut() {
-    await signOut();
-    userId = null;
+    try {
+      await signOut();
+    } catch (error) {
+      console.warn('FlowBudget: sign out request failed.', error);
+    }
+    signOutLocally();
   }
-  
+
   // ── Scroll to top ──
   let showScrollButton = $state(false);
   
@@ -65,8 +120,13 @@
     const handleScroll = () => {
       showScrollButton = window.scrollY > 600;
     };
+    const handleOnline = () => connect();
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('online', handleOnline);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('online', handleOnline);
+    };
   });
   
   function scrollToTop() {
@@ -108,6 +168,17 @@
   <AuthScreen />
 {:else}
   <TransactionForm />
+
+  {#if isSyncing}
+    <div
+      class="fixed top-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 pl-2.5 pr-3.5 py-1.5 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border border-gray-200 dark:border-gray-700 shadow-sm"
+      transition:fly={{ y: -8, duration: 200 }}
+    >
+      <span class="h-3 w-3 animate-spin rounded-full border-2 border-gray-200 border-t-indigo-600 dark:border-gray-600 dark:border-t-indigo-400"></span>
+      <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Syncing…</span>
+    </div>
+  {/if}
+
   <div class="min-h-screen">
     <!-- Header -->
     <header class="sticky top-0 z-20 bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 px-4 sm:px-6">
