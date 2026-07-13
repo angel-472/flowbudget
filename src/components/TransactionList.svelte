@@ -53,7 +53,7 @@
     <p class="text-xs text-gray-400 dark:text-gray-500">No {isIncome ? 'income' : 'expenses'} yet</p>
   </div>
 {:else}
-  <div class="w-full md:w-1/2">
+  <div class="w-full">
     <div class="flex items-baseline justify-between mb-2">
       <h4 class="text-xs font-semibold uppercase tracking-wider {isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}">
         {isIncome ? 'Income' : 'Expenses'}
@@ -62,7 +62,7 @@
         {formatCurrency(transactions.reduce((sum, t) => sum + t.amount, 0))}
       </span>
     </div>
-    <div class="flex flex-col max-h-80 overflow-y-auto">
+    <div class="flex flex-col overflow-y-auto">
       {#each transactions.toSorted((a, b) => new Date(a.date) - new Date(b.date)) as t (t.id)}
         <div class="group flex items-center gap-3 py-2 px-1 border-b border-gray-100 dark:border-gray-800 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded transition-colors">
           <!-- Status toggle -->
