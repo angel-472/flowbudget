@@ -19,6 +19,7 @@ class BudgetApi {
   constructor(){
     this.transactions = $state(localCache.loadTransactions());
     this.syncing = null;
+    this.weekStartDay = 5; // The day the weeks start from, 0 = Sunday <--> 6 = Saturday
   }
   getAllTransactions() {
     return this.transactions;
@@ -64,7 +65,7 @@ class BudgetApi {
   }
   getTransactionsForWeek(year, weekNumber, type) {
     // Calculate start and end dates of the week
-    const weekRange = dateUtils.getWeekDateRange(year, weekNumber);
+    const weekRange = dateUtils.getWeekDateRange(year, weekNumber, this.weekStartDay);
     const startOfWeek = weekRange[0];
     const endOfWeek = weekRange[6];
 

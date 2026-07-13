@@ -8,45 +8,29 @@ class DateUtils {
     return new Date(year, month - 1, day);
   }
 
-  /**
-   * Calculate the week number for a given date (Apple Calendar compatible)
-   * Week 1 includes January 1st, even if it's a partial week
-   * Each week starts on Sunday and ends on Saturday
-   */
-  getWeekNumber(date) {
-    const inputDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const yearStart = new Date(inputDate.getFullYear(), 0, 1);
-    const daysSinceYearStart = Math.floor((inputDate - yearStart) / (1000 * 60 * 60 * 24));
-    const jan1DayOfWeek = yearStart.getDay();
-    const adjustedDays = daysSinceYearStart + jan1DayOfWeek;
-    const weekNumber = Math.floor(adjustedDays / 7) + 1;
-    return weekNumber;
+  // Calculate the week number for a given date based on the specific start day
+  getWeekNumber(date, weekStartsOn = 0) {
+    const input = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const yearStart = new Date(input.getFullYear(), 0, 1);
+    const daysSinceStart = Math.floor((input - yearStart) / 86400000);
+    const offset = (yearStart.getDay() - weekStartsOn + 7) % 7;
+    return Math.floor((daysSinceStart + offset) / 7) + 1;
   }
 
   /** 
-   * Get the date range (Sunday to Saturday) for a specific week number in a year
+   * Get the date range for a specific week number of the year, with arbitrary week start day 0 = Sunday <--> 6 = Saturday
    */
-  getWeekDateRange(year, weekNumber) {
+  getWeekDateRange(year, weekNumber, weekStartsOn = 0) {
     const yearStart = new Date(year, 0, 1);
-    const jan1DayOfWeek = yearStart.getDay();
-    const firstWeekSunday = new Date(yearStart);
-    if (jan1DayOfWeek !== 0) {
-      firstWeekSunday.setDate(yearStart.getDate() - jan1DayOfWeek);
-    }
-    const startOfWeek = new Date(firstWeekSunday);
-    startOfWeek.setDate(firstWeekSunday.getDate() + (weekNumber - 1) * 7);
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    const offset = (yearStart.getDay() - weekStartsOn + 7) % 7;
+    const start = new Date(year, 0, 1 - offset + (weekNumber - 1) * 7);
 
-    // Build array of dates from start to end
-    const dates = [];
-    for (let d = new Date(startOfWeek); d <= endOfWeek; d.setDate(d.getDate() + 1)) {
-      dates.push(new Date(d));
-    }
-    return dates;
+    return Array.from({ length: 7 }, (_, i) =>
+      new Date(start.getFullYear(), start.getMonth(), start.getDate() + i)
+    );
   }
 
-  getWeeksInMonth(year, monthNumber) {
+  getWeeksInMonth(year, monthNumber, weekStartsOn = 0) {
     const weeks = [];
     const monthStart = this.createLocalDate(`${year}-${monthNumber}-01`);
     const monthEnd = this.createLocalDate(`${year}-${monthNumber + 1}-01`);
@@ -55,7 +39,7 @@ class DateUtils {
     
     // Go back to find the Sunday that starts the first week of the month
     // console.log({monthStart, monthEnd, currentDate})
-    while (currentDate.getDay() !== 0) {
+    while (currentDate.getDay() !== weekStartsOn) {
       currentDate.setDate(currentDate.getDate() - 1);
     }
     
