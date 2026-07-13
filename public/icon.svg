@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4F46E5"/>
+      <stop offset="100%" stop-color="#7C3AED"/>
+    </linearGradient>
+    <radialGradient id="sheen" cx="28%" cy="18%" r="75%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Full-bleed square: iOS masks this into its own squircle, and opaque
+       pixels keep it off the black background iOS uses for transparency. -->
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <rect width="512" height="512" fill="url(#sheen)"/>
+
+  <!-- "Flow" currents. Kept as soft washes, not fine detail, so they read as
+       texture rather than noise at 40px. -->
+  <path d="M0 360 C 110 322, 175 414, 292 374 C 396 339, 452 392, 512 366 L512 512 L0 512 Z"
+        fill="#FFFFFF" opacity="0.10"/>
+  <path d="M0 420 C 128 386, 190 462, 310 430 C 410 403, 460 442, 512 424 L512 512 L0 512 Z"
+        fill="#FFFFFF" opacity="0.08"/>
+
+  <!-- Dollar mark, held inside the maskable safe zone (centre 80%) so Android's
+       mask can't clip it. -->
+  <g stroke="#FFFFFF" fill="none" stroke-linecap="round">
+    <path d="M256 104 L256 408" stroke-width="28"/>
+    <path d="M330 190
+             C 330 158, 298 138, 256 138
+             C 214 138, 182 156, 182 190
+             C 182 224, 214 240, 256 250
+             C 298 260, 330 276, 330 310
+             C 330 344, 298 362, 256 362
+             C 214 362, 182 342, 182 310"
+          stroke-width="34"/>
+  </g>
+</svg>
