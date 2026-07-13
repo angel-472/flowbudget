@@ -41,12 +41,13 @@ class DateUtils {
     // console.log({monthStart, monthEnd, currentDate})
     while (currentDate.getDay() !== weekStartsOn) {
       currentDate.setDate(currentDate.getDate() - 1);
+      console.log(currentDate.getDay())
     }
     
     // Find all weeks until we pass the end of the month
     while (currentDate <= monthEnd) {
-      const weekNumber = this.getWeekNumber(currentDate);
-      const { start, end } = this.getWeekDateRange(year, weekNumber);
+      const weekNumber = this.getWeekNumber(currentDate, weekStartsOn);
+      const { start, end } = this.getWeekDateRange(year, weekNumber, weekStartsOn);
       weeks.push(weekNumber);
       currentDate.setDate(currentDate.getDate() + 7); // Move to next week
     }
