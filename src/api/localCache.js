@@ -68,6 +68,7 @@ class LocalCache {
     remove(SESSION_KEY);
     remove(TRANSACTIONS_KEY);
     remove(QUEUE_KEY);
+    remove(GOALS_KEY);
   }
 }
 
