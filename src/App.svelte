@@ -2,14 +2,15 @@
   import { Moon, Sun, LogOut, ArrowUp, Search } from "lucide-svelte"
   import { onMount } from "svelte";
   import { fly } from "svelte/transition";
-  import MonthView from "./components/MonthView.svelte";
-  import TransactionForm from './components/TransactionForm.svelte';
-  import SearchOverlay from './components/SearchOverlay.svelte';
+  import MonthView from "./components/budget/MonthView.svelte";
+  import TransactionForm from './components/budget/TransactionForm.svelte';
+  import SearchOverlay from './components/budget/SearchOverlay.svelte';
   import AuthScreen from "./components/AuthScreen.svelte";
   import { getCurrentUserResult, onAuthStateChange, signOut } from "./api/auth";
   import { budgetApi } from "./api/budgetApi.svelte.js";
   import { localCache } from "./api/localCache.js";
   import { syncQueue } from "./api/syncQueue.js";
+    import GoalsView from "./components/goals/GoalsView.svelte";
 
   // ── Dark mode ──
   let darkMode = $state(false);
@@ -239,7 +240,7 @@
       {:else if currentView === "recurring"}
         <h2 class="text-center text-xl font-medium p-8">Recurring</h2>
       {:else if currentView === "goals"}
-        <h2 class="text-center text-xl font-medium p-8">Goals</h2>
+        <GoalsView />
       {/if}
     </main>
     
