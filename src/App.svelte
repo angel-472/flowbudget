@@ -122,7 +122,7 @@
   
   onMount(() => {
     const handleScroll = () => {
-      showScrollButton = window.scrollY > 600;
+      showScrollButton = window.scrollY > 300;
     };
     const handleOnline = () => connect();
     window.addEventListener('scroll', handleScroll);
@@ -176,17 +176,17 @@
         <h1 class="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100">FlowBudget</h1>
         
         <div class="flex items-center gap-1">
-          <span class="hidden md:block text-sm text-zinc-500 dark:text-zinc-400 mr-2">{user.email}</span>
 
           <button
             onclick={() => showSearch = true}
-            class="p-2 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+            class="p-2 rounded-lg text-zinc-500 dark:text-zinc-100 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer flex gap-2 items-center"
             title="Search (⌘K)"
           >
-            <Search size={18} />
+            <Search size={20} />
           </button>
 
-          <button
+          <!-- TODO: Add these options back in a preferences section -->
+          <!-- <button
             onclick={toggleDarkMode}
             class="p-2 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
             title="Toggle theme"
@@ -196,15 +196,15 @@
             {:else}
               <Moon size={18} />
             {/if}
-          </button>
+          </button> -->
           
-          <button
+          <!-- <button
             class="p-2 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
             onclick={handleSignOut}
             title="Sign Out"
           >
             <LogOut size={18} />
-          </button>
+          </button> -->
         </div>
       </div>
     </header>
