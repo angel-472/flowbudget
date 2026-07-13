@@ -5,14 +5,16 @@
   import { formatCurrency } from '/src/api/utils.js';
   import { signal } from '/src/api/signal.js';
   import { onDestroy, onMount } from 'svelte';
-  import TransactionList from './TransactionList.svelte';
+  import TransactionList from './TransactionList.svelte'
+
+  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
   let props = $props();
   let weekNumber = props.weekNumber ?? 1;
   let currentMonth = props.currentMonth ?? 1;
   let currentYear = props.currentYear ?? 2023;
 
-  let dateRange = dateUtils.getWeekDateRange(currentYear, weekNumber);
+  let dateRange = dateUtils.getWeekDateRange(currentYear, weekNumber, budgetApi.weekStartDay);
 
   function openAddItemModal() {
     signal.emit("OPEN_TRANSACTION_FORM", {
@@ -44,10 +46,8 @@
       updateTransactionData();
     });
     signal.sub("UPDATE_TRANSACTION", signalSubId, (data) => {
-      let weekOfTransaction = dateUtils.getWeekNumber(dateUtils.createLocalDate(data.transaction.date));
-      if (weekOfTransaction === weekNumber) {
-        updateTransactionData();
-      }
+      updateTransactionData();
+      // Update all week cards to prevent duplicates
     });
   });
 
@@ -71,7 +71,7 @@
   <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
     <div class="flex items-baseline gap-2">
       <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
-        {dateRange[0].toLocaleString('default', { month: 'short' })} {dateRange[0].getDate()} – {dateRange[6].toLocaleString('default', { month: 'short' })} {dateRange[6].getDate()}
+        {dayNames[dateRange[0].getDay()]}, {dateRange[0].toLocaleString('default', { month: 'short' })} {dateRange[0].getDate()} – {dayNames[dateRange[6].getDay()]}, {dateRange[6].toLocaleString('default', { month: 'short' })} {dateRange[6].getDate()}
       </h2>
       <span class="text-xs text-gray-400 dark:text-gray-500">W{weekNumber}</span>
       {#if isCurrentWeek}
@@ -91,7 +91,7 @@
 
   <!-- Content -->
   <div class="px-4 py-3">
-    <div class="flex flex-col md:flex-row gap-4 divide-y md:divide-y-0 md:divide-x divide-gray-100 dark:divide-gray-800">
+    <div class="flex flex-col gap-4 divide-y md:divide-y-0 md:divide-x divide-gray-100 dark:divide-gray-800">
       <TransactionList type="incomes" transactions={incomes} />
       <TransactionList type="expenses" transactions={expenses} />
     </div>
