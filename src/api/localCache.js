@@ -4,7 +4,8 @@
 const SESSION_KEY = 'flowbudget:session';
 const TRANSACTIONS_KEY = 'flowbudget:transactions';
 const QUEUE_KEY = 'flowbudget:queue';
-
+const GOALS_KEY = 'flowbudget:goals'
+ 
 function read(key, fallback) {
   try {
     const raw = localStorage.getItem(key);
@@ -55,6 +56,13 @@ class LocalCache {
   }
   saveQueue(queue) {
     write(QUEUE_KEY, queue);
+  }
+  loadGoals(){
+    const goals = read(GOALS_KEY, []);
+    return Array.isArray(goals) ? goals : [];
+  }
+  saveGoals(goals){
+    write(GOALS_KEY, goals);
   }
   clear() {
     remove(SESSION_KEY);
