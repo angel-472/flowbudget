@@ -1,8 +1,9 @@
 <script>
-  import { Moon, Sun, LogOut, ArrowUp, Plus } from "lucide-svelte"
+  import { Moon, Sun, LogOut, ArrowUp, Plus, Search } from "lucide-svelte"
   import { onMount } from "svelte";
   import MonthView from "./components/MonthView.svelte";
   import TransactionForm from './components/TransactionForm.svelte';
+  import SearchOverlay from './components/SearchOverlay.svelte';
   import AuthScreen from "./components/AuthScreen.svelte";
   import { getCurrentUser, onAuthStateChange, signOut } from "./api/auth";
   import { signal } from "./api/signal";
@@ -72,6 +73,9 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  // ── Search ──
+  let showSearch = $state(false);
+
   function handleAddTransaction() {
     signal.emit("OPEN_TRANSACTION_FORM", {
       transaction: {
@@ -86,6 +90,12 @@
     });
   }
 </script>
+
+<svelte:window onkeydown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); showSearch = true; } }} />
+
+{#if showSearch && user}
+  <SearchOverlay onClose={() => showSearch = false} />
+{/if}
 
 {#if isLoading}
   <div class="flex items-center justify-center min-h-screen">
@@ -106,7 +116,15 @@
         
         <div class="flex items-center gap-1">
           <span class="hidden md:block text-sm text-gray-500 dark:text-gray-400 mr-2">{user.email}</span>
-          
+
+          <button
+            onclick={() => showSearch = true}
+            class="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+            title="Search (⌘K)"
+          >
+            <Search size={18} />
+          </button>
+
           <button
             onclick={toggleDarkMode}
             class="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"

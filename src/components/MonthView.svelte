@@ -3,8 +3,9 @@
   import { budgetApi } from '/src/api/budgetApi.svelte.js';
   import { dateUtils } from '/src/api/dateUtils.js';
   import { formatCurrency } from '/src/api/utils.js';
+  import { signal } from '/src/api/signal.js';
   import WeekCard from './WeekCard.svelte';
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   
   let currentMonth = $state(new Date().getMonth());
   let currentYear = $state(new Date().getFullYear());
@@ -57,6 +58,16 @@
   onMount(() => {
     let weekNumber = dateUtils.getWeekNumber(dateUtils.createLocalDate(new Date().toISOString().split('T')[0]));
     scrollTo(`week-view-${weekNumber}`, 80, false);
+
+    signal.sub('NAVIGATE_TO_DATE', 'month-view', async ({ date }) => {
+      const target = dateUtils.createLocalDate(date);
+      currentMonth = target.getMonth();
+      currentYear = target.getFullYear();
+      await tick();
+      scrollTo(`week-view-${dateUtils.getWeekNumber(target)}`, 80, true);
+    });
+
+    return () => signal.unsub('NAVIGATE_TO_DATE', 'month-view');
   });
 </script>
 
