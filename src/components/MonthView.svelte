@@ -29,7 +29,7 @@
     else currentMonth++;
   }
 
-  let weeksInMonth = $derived(dateUtils.getWeeksInMonth(currentYear, currentMonth + 1));
+  let weeksInMonth = $derived(dateUtils.getWeeksInMonth(currentYear, currentMonth + 1, budgetApi.weekStartDay));
   
   let monthlySummary = $derived.by(() => {
     let allTransactions = budgetApi.getAllTransactions();
