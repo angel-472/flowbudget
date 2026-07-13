@@ -60,8 +60,8 @@ This project is licensed under the MIT License – see the [LICENSE](LICENSE) fi
 - [Supabase](https://supabase.com/) – For the backend infrastructure
 - [Tailwind CSS](https://tailwindcss.com/) – For the utility-first styling
 - [Lucide](https://lucide.dev/) – For the beautiful icons
-- [GitHub Copilot Pro](https://github.com/features/copilot) – For AI-powered coding assistance and technical writing
-- [Claude Code](https://claude.com/product/claude-code) – For AI-powered coding assistance and technical writing
+- [GitHub Copilot Pro](https://github.com/features/copilot) – For AI-powered coding assistance
+- [Claude Code](https://claude.com/product/claude-code) – For AI-powered coding assistance
 
 ---
 
