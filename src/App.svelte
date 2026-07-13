@@ -173,7 +173,11 @@
     <!-- Header -->
     <header class="sticky top-0 z-20 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-sm border-b border-zinc-200 dark:border-zinc-800 px-4 sm:px-6">
       <div class="flex items-center justify-between h-14 max-w-5xl mx-auto">
-        <h1 class="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100">FlowBudget</h1>
+
+        <!-- refresh (for going back in PWA) -->
+        <button onclick={() => location.reload()}> 
+          <h1 class="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100">FlowBudget</h1>
+        </button>
         
         <div class="flex items-center gap-1">
 
