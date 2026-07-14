@@ -41,7 +41,6 @@ class DateUtils {
     // console.log({monthStart, monthEnd, currentDate})
     while (currentDate.getDay() !== weekStartsOn) {
       currentDate.setDate(currentDate.getDate() - 1);
-      console.log(currentDate.getDay())
     }
     
     // Find all weeks until we pass the end of the month
