@@ -89,7 +89,7 @@ class BudgetApi {
   async #sync() {
     await syncQueue.flush();
     const data = await databaseApi.getAllTransactions();
-    const merged = syncQueue.applyTo(data || []);
+    const merged = syncQueue.applyTo('transaction', data || []);
     this.transactions = merged;
     this.#persist();
     console.log(`💾 Loaded ${merged.length} transactions into Budget API`);
