@@ -75,9 +75,10 @@ class SyncQueue {
    * Replays still-pending ops on top of a fresh server snapshot, so a fetch that
    * raced with an unsynced local edit doesn't roll it back.
    */
-  applyTo(type, rows) {
+  applyTo(dataType, rows) {
     let merged = rows;
-    for (const { op, id, payload } of this.ops) {
+    for (const { type, op, id, payload } of this.ops) {
+      if(type !== dataType) continue;
       merged = merged.filter(row => row.id !== id);
       if (op === 'upsert') merged.push(payload);
     }
