@@ -6,10 +6,10 @@
   import TransactionForm from './components/budget/TransactionForm.svelte';
   import SearchOverlay from './components/budget/SearchOverlay.svelte';
   import AuthScreen from "./components/AuthScreen.svelte";
-  import { getCurrentUserResult, onAuthStateChange, signOut } from "./api/auth";
+  import { getCurrentUserResult, onAuthStateChange, signOut } from "./api/cloud/auth";
   import { budgetApi } from "./api/budgetApi.svelte.js";
   import { localCache } from "./api/localCache.js";
-  import { syncQueue } from "./api/syncQueue.js";
+  import { syncQueue } from "./api/cloud/syncQueue.js";
     import GoalsView from "./components/goals/GoalsView.svelte";
 
   // ── Dark mode ──
