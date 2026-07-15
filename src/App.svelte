@@ -234,7 +234,7 @@
     </nav>
 
     <!-- Main content -->
-    <main class="max-w-5xl mx-auto">
+    <main class="max-w-5xl mx-auto pb-32">
       {#if currentView === "month"}
         <MonthView />
       {:else if currentView === "recurring"}
