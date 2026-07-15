@@ -1,8 +1,16 @@
 {
   "name": "flowbudget",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "description": "A modern, minimalistic weekly budget tracker for expenses, recurring expenses, and savings goals. Built with Svelte 5 and Supabase.",
+  "author": "angel-472 (https://github.com/angel-472)",
+  "license": "MIT",
+  "homepage": "https://flowbudget.pages.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/angel-472/flowbudget.git"
+  },
   "scripts": {
     "dev": "vite --host --port 8001",
     "build": "vite build",
