@@ -49,7 +49,7 @@
 </script>
 
 {#if transactions.length === 0}
-  <div class="flex flex-1 items-center justify-center py-4 w-full md:w-1/2">
+  <div class="flex flex-1 items-center justify-center py-4 w-full">
     <p class="text-xs text-zinc-400 dark:text-zinc-500">No {isIncome ? 'income' : 'expenses'} yet</p>
   </div>
 {:else}

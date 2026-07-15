@@ -64,7 +64,7 @@
 </script>
 
 <article
-  class="border rounded-xl {isCurrentWeek ? 'border-indigo-300 dark:border-indigo-800 bg-indigo-50/30 dark:bg-indigo-950/20' : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900'}"
+  class="border rounded-2xl {isCurrentWeek ? 'border-indigo-300 dark:border-indigo-800 bg-indigo-50/30 dark:bg-indigo-950/20' : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900'}"
   id="week-view-{weekNumber}"
 >
   <!-- Header -->
@@ -91,7 +91,7 @@
 
   <!-- Content -->
   <div class="px-4 py-3">
-    <div class="flex flex-col gap-4 divide-y md:divide-y-0 md:divide-x divide-zinc-100 dark:divide-zinc-800">
+    <div class="flex flex-col gap-4">
       <TransactionList type="incomes" transactions={incomes} />
       <TransactionList type="expenses" transactions={expenses} />
     </div>
