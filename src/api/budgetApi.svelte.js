@@ -1,8 +1,8 @@
-import { databaseApi } from "./databaseApi.js";
+import { databaseApi } from "./cloud/databaseApi.js";
 import { dateUtils } from "./dateUtils.js";
 import { localCache } from "./localCache.js";
 import { signal } from "./signal.js";
-import { syncQueue } from "./syncQueue.js";
+import { syncQueue } from "./cloud/syncQueue.js";
 
 // Polyfill to generate a UUID (if crypto.randomUUID is not available)
 if (!crypto.randomUUID) {

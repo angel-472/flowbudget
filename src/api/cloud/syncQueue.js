@@ -1,5 +1,5 @@
 import { databaseApi } from './databaseApi.js';
-import { localCache } from './localCache.js';
+import { localCache } from '../localCache.js';
 
 const MAX_ATTEMPTS = 3;
 const RETRY_DELAY_MS = 15000;
