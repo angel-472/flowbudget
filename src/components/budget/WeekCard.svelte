@@ -64,7 +64,7 @@
 </script>
 
 <article
-  class="border rounded-lg {isCurrentWeek ? 'border-indigo-300 dark:border-indigo-800 bg-indigo-50/30 dark:bg-indigo-950/20' : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900'}"
+  class="border rounded-xl {isCurrentWeek ? 'border-indigo-300 dark:border-indigo-800 bg-indigo-50/30 dark:bg-indigo-950/20' : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900'}"
   id="week-view-{weekNumber}"
 >
   <!-- Header -->
