@@ -1,6 +1,6 @@
 <script>
   import { Mail, Lock, EyeOff, Eye } from 'lucide-svelte';
-  import { signIn, signUp } from '/src/api/auth.js';
+  import { signIn, signUp } from '/src/api/cloud/auth.js';
 
   let isSignUp = $state(false);
   let email = $state('');
