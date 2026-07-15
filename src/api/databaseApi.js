@@ -5,42 +5,49 @@ class DatabaseApi {
   constructor() {
     this.supabase = supabase;
   }
-  async getAllTransactions() {
+
+  // GENERALIZED DB METHODS (requires rows to have a .id field)
+
+    async getAll(table) {
     let startTime = performance.now();
     try {
       const { data, error } = await this.supabase
-        .from('flowbudget_transactions')
+        .from(`flowbudget_${table}`)
         .select('*');
       if (error) throw error;
-      console.log(`Fetched ${data.length} transactions in ${(performance.now() - startTime).toFixed(2)} ms`);
+      console.log(`Fetched ${data.length} from '${table}' in ${(performance.now() - startTime).toFixed(2)} ms`);
       return data;
     } catch (error) {
       handleSupabaseError(error);
     }
   }
   // update or insert transaction
-  async upsertTransaction(transaction){
+  async upsert(table, rowData){
+    if(rowData.id == undefined){
+      console.error('databaseApi: data rows upserted into a table must be properly identified with an id field. Skipping.');
+      return;
+    }
     try {
-      transaction.user_id = await getCurrentUserId();
+      rowData.user_id = await getCurrentUserId();
       const { data, error } = await this.supabase
-        .from('flowbudget_transactions')
-        .upsert(transaction)
+        .from(`flowbudget_${table}`)
+        .upsert(rowData)
         .select();
       if (error) throw error;
-      console.log(`⚡️ Transaction '${transaction.id}' updated in database.`);
+      console.log(`⚡️ '${rowData.id}' from '${table}' updated in database.`);
       return data;
     } catch (error) {
       handleSupabaseError(error);
     }
   }
-  async deleteTransaction(transactionId){
+  async delete(table, rowId){
     try {
       const { data, error } = await this.supabase
-        .from('flowbudget_transactions')
+        .from(`flowbudget_${table}`)
         .delete()
-        .eq('id', transactionId);
+        .eq('id', rowId);
       if (error) throw error;
-      console.log(`⚡️ Transaction '${transactionId}' deleted 🗑️ from database.`);
+      console.log(`⚡️ '${rowId}' from '${table}' deleted 🗑️ from database.`);
       return data;
     } catch (error) {
       handleSupabaseError(error);

@@ -88,8 +88,8 @@ class BudgetApi {
   }
   async #sync() {
     await syncQueue.flush();
-    const data = await databaseApi.getAllTransactions();
-    const merged = syncQueue.applyTo('transaction', data || []);
+    const data = await databaseApi.getAll('transactions');
+    const merged = syncQueue.applyTo('transactions', data || []);
     this.transactions = merged;
     this.#persist();
     console.log(`💾 Loaded ${merged.length} transactions into Budget API`);
@@ -102,7 +102,7 @@ class BudgetApi {
     localCache.clear();
   }
   #queueUpsert(transaction) {
-    syncQueue.enqueue('transaction', 'upsert', transaction.id, $state.snapshot(transaction));
+    syncQueue.enqueue('transactions', 'upsert', transaction.id, $state.snapshot(transaction));
     this.#persist();
   }
   #persist() {

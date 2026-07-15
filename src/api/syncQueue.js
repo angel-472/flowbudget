@@ -1,33 +1,3 @@
-// Durable write queue. Every mutation is recorded here first, then pushed to
-// Supabase as soon as a connection is available. Ops survive reloads via
-// localCache, so changes made while offline are never lost.
-//
-// TODO: This queue is transaction-only. Before adding goals to it:
-//
-// 1. Tag ops with an entity: { entity, op, id, payload, attempts }.
-//    applyTo() currently replays EVERY pending op into whatever rows it's given
-//    and pushes the payload unconditionally, so a queued goal upsert would land
-//    in budgetApi.transactions. Make it applyTo(entity, rows) and filter first.
-//    #drain() has the same problem: it hardcodes databaseApi.upsertTransaction /
-//    deleteTransaction, so a queued goal would be written to the transactions table.
-//
-// 2. Dispatch by entity instead of calling databaseApi directly — e.g. a
-//    register(entity, { upsert, remove }) map. Wants databaseApi generalized to
-//    table-generic getAll(table) / upsert(table, row) / remove(table, id).
-//
-// 3. Migrate the persisted queue. Ops already in localStorage have no `entity`
-//    field; loadQueue() must default them to 'transaction' or the first sync
-//    after deploy misroutes real user writes.
-//
-// 4. Keep ONE queue for both entities. Ordering and the single `draining`
-//    promise are the point; two parallel queues would race on flush.
-//
-// Also unrelated but live today: localCache.clear() never removes GOALS_KEY, so
-// on sign-out one user's goals survive into the next user's session.
-//
-// 5. App.svelte calls budgetApi.sync() / .reset() directly. With goals in play
-//    those need to fan out to both APIs, or goals never load and sign-out only
-//    half-clears.
 import { databaseApi } from './databaseApi.js';
 import { localCache } from './localCache.js';
 
@@ -75,8 +45,8 @@ class SyncQueue {
    * Replays still-pending ops on top of a fresh server snapshot, so a fetch that
    * raced with an unsynced local edit doesn't roll it back.
    */
-  applyTo(dataType, rows) {
-    let merged = rows;
+  applyTo(dataType, data) {
+    let merged = data;
     for (const { type, op, id, payload } of this.ops) {
       if(type !== dataType) continue;
       merged = merged.filter(row => row.id !== id);
@@ -109,8 +79,8 @@ class SyncQueue {
     while (this.ops.length > 0) {
       const entry = this.ops[0];
       try {
-        if (entry.op === 'upsert') await databaseApi.upsertTransaction({ ...entry.payload });
-        else await databaseApi.deleteTransaction(entry.id);
+        if (entry.op === 'upsert') await databaseApi.upsert(entry.type, { ...entry.payload });
+        else await databaseApi.delete(entry.type, entry.id);
       } catch (error) {
         if (looksOffline(error)) {
           console.warn(`⏸️ Sync paused — ${this.ops.length} change(s) still queued.`);
