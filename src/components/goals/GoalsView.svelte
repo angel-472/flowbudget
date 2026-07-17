@@ -1,12 +1,19 @@
 <script>
   import { goalsApi } from "src/api/goalsApi.svelte.js";
   import { formatCurrency } from "/src/api/utils.js";
-  import { Plus, Trash2, Pin, Target } from "lucide-svelte";
+  import { Plus, Trash2, Pin, Target, HandMetal } from "lucide-svelte";
   import AddGoalModal from "./AddGoalModal.svelte";
   import EditBalanceModal from "./EditBalanceModal.svelte";
+  import DeleteGoalModal from "./DeleteGoalModal.svelte";
+  import { signal } from "/src/api/signal";
 
-  // mock data
-  let goals = $state([{ id: crypto.randomUUID(), name: "Universal Trip", target: 2500, balance: 500 }]);
+  let goals = $state(goalsApi.goals);
+
+  signal.sub("UPDATE_GOALS", "GoalsViewComponent", () => {
+    requestAnimationFrame(() => {
+      goals = goalsApi.goals;
+    })
+  });
 
   let isModalOpen = $state(false);
 
@@ -23,9 +30,36 @@
     isEditOpen = true;
   }
 
+  // delete-confirmation modal
+  let isDeleteOpen = $state(false);
+  let deleteGoal = $state(null);
+
+  function openDeleteModal(goal) {
+    deleteGoal = goal;
+    isDeleteOpen = true;
+  }
+
   function progress(goal) {
     if (!goal.target) return 0;
     return Math.min(100, Math.round((goal.balance / goal.target) * 100));
+  }
+
+
+  let balanceModifierValue = $state();
+
+  function adjustBalanceBtn(goalId){
+    const goal = goalsApi.getById(goalId);
+    const adjustmentField = document.getElementById(`ajust_goal_${goal.id}`);
+    const modifierValue = parseFloat(adjustmentField.value);
+    adjustmentField.value = '';
+    goal.balance = Math.min(goal.target, goal.balance + modifierValue);
+    goalsApi.updateGoal(goal.id);
+  }
+
+  function adjustBalanceKeyDown(event, goalId){
+    if(event.key == 'Enter'){
+      adjustBalanceBtn(goalId);
+    }
   }
 </script>
 
@@ -73,17 +107,18 @@
               </span>
             </div>
             <div class="flex items-center gap-1 shrink-0">
-              <button
+              <!-- <button
                 class="p-1.5 rounded-md text-zinc-400 hover:text-indigo-400 hover:bg-zinc-800 transition-colors cursor-pointer"
                 aria-label="Pin goal"
                 title="Pin goal"
               >
                 <Pin size={14} />
-              </button>
+              </button> -->
               <button
                 class="p-1.5 rounded-md text-zinc-400 hover:text-red-400 hover:bg-zinc-800 transition-colors cursor-pointer"
                 aria-label="Delete goal"
                 title="Delete goal"
+                onclick={() => openDeleteModal(goal)}
               >
                 <Trash2 size={14} />
               </button>
@@ -109,9 +144,11 @@
               <span class="text-xs font-medium text-zinc-400">Adjust balance</span>
               <div class="mt-1.5 flex items-center gap-2">
                 <input
+                  id="ajust_goal_{goal.id}"
                   type="text"
                   placeholder="+/- amount"
                   class="flex-1 min-w-0 px-3 py-2 text-sm border border-zinc-700 rounded-lg bg-zinc-900 text-zinc-100 placeholder-zinc-500 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+                  onkeydown={(event) => adjustBalanceKeyDown(event, goal.id)}
                 />
                 <button
                   class="px-3 py-2 text-sm font-medium text-zinc-300 rounded-lg border border-zinc-700 hover:bg-zinc-800 transition-colors cursor-pointer"
@@ -121,6 +158,7 @@
                 </button>
                 <button
                   class="px-3 py-2 text-sm font-medium text-white bg-indigo-500 hover:bg-indigo-600 rounded-lg active:scale-[0.98] transition-all cursor-pointer"
+                  onclick={() => adjustBalanceBtn(goal.id)}
                 >
                   Apply
                 </button>
@@ -135,4 +173,5 @@
 
 <!-- Modals -->
 <AddGoalModal bind:open={isModalOpen} />
-<EditBalanceModal bind:open={isEditOpen} goal={editGoal} />
+<EditBalanceModal bind:open={isEditOpen} goal={editGoal} onclose={() => editGoal = undefined}  />
+<DeleteGoalModal bind:open={isDeleteOpen} goal={deleteGoal} onclose={() => deleteGoal = null} />
