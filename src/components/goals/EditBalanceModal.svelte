@@ -1,28 +1,43 @@
 <script>
+    import { goalsApi } from "../../api/goalsApi.svelte";
   import { formatCurrency } from "/src/api/utils.js";
 
-  let { open = $bindable(false), goal, onsubmit } = $props();
+  let { open = $bindable(false), goal, onsubmit, onclose } = $props();
 
-  // local balance seeded from the goal (no data functionality yet)
+  // local values seeded from the goal (no data functionality yet)
+  let name = $state("");
   let balance = $state(0);
+  let target = $state(0);
 
-  // seed the slider/input whenever a goal is loaded into the modal
+  // seed the inputs whenever a goal is loaded into the modal
   $effect(() => {
-    if (goal) balance = goal.balance;
+    if (goal) {
+      name = goal.name;
+      balance = parseFloat(goal.balance);
+      target = parseFloat(goal.target);
+    }
   });
 
   let progress = $derived(
-    goal && goal.target ? Math.min(100, Math.round((balance / goal.target) * 100)) : 0
+    target ? Math.min(100, Math.round((balance / target) * 100)) : 0
   );
 
   function close() {
     open = false;
+    name = "";
+    balance = 0;
+    target = 0;
+    if(onclose) onclose();
   }
 
   function handleSubmit(e) {
     e.preventDefault();
-    // TODO: wire up balance update
-    onsubmit?.(balance);
+    let goalInstance = goalsApi.getById(goal.id);
+    goalInstance.name = name;
+    goalInstance.balance = balance;
+    goalInstance.target = target;
+    goalsApi.updateGoal(goal.id);
+    onsubmit?.({ name, balance, target });
     close();
   }
 </script>
@@ -33,46 +48,52 @@
   <div
     class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
     onkeydown={(e) => e.key === 'Escape' && close()}
-    onclick={(e) => e.target === e.currentTarget && close()}
   >
     <!-- Modal -->
     <div class="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-      <h3 class="text-base font-bold text-zinc-100 mb-1">Adjust Balance</h3>
-      <p class="text-xs text-zinc-500 mb-4">{goal.name}</p>
+      <h3 class="text-base font-bold text-zinc-100 mb-4">Adjust Balance</h3>
 
       <form onsubmit={handleSubmit} class="space-y-4">
         <!-- Current value readout -->
-        <div class="flex items-baseline justify-between">
+        <div class="flex items-baseline gap-2">
           <span class="text-2xl font-bold text-zinc-100">{formatCurrency(balance)}</span>
-          <span class="text-sm text-zinc-500">of {formatCurrency(goal.target)} · {progress}%</span>
+          <span class="text-2xl font-bold text-zinc-500">/ {formatCurrency(target)}</span>
+          <span class="ml-auto text-sm text-zinc-500">{progress}%</span>
         </div>
 
-        <!-- Slider from 0 to target -->
-        <input
-          type="range"
-          min="0"
-          max={goal.target}
-          step="1"
-          bind:value={balance}
-          class="w-full accent-indigo-500 cursor-pointer"
-        />
-        <div class="flex justify-between text-xs text-zinc-500">
-          <span>{formatCurrency(0)}</span>
-          <span>{formatCurrency(goal.target)}</span>
-        </div>
-
-        <!-- Exact amount input -->
+        <!-- Editable name -->
         <label class="flex flex-col gap-1">
-          <span class="text-xs font-medium text-zinc-400">Exact amount ($)</span>
+          <span class="text-xs font-medium text-zinc-400">Name</span>
           <input
-            type="number"
-            bind:value={balance}
-            step="0.01"
-            min="0"
-            max={goal.target}
+            type="text"
+            bind:value={name}
             class="px-3 py-2 text-sm border border-zinc-700 rounded-lg bg-zinc-900 text-zinc-100 placeholder-zinc-500 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
           />
         </label>
+
+        <!-- Exact balance & target inputs -->
+        <div class="grid grid-cols-2 gap-3">
+          <label class="flex flex-col gap-1">
+            <span class="text-xs font-medium text-zinc-400">Current balance ($)</span>
+            <input
+              type="number"
+              bind:value={balance}
+              step="0.01"
+              min="0"
+              class="px-3 py-2 text-sm border border-zinc-700 rounded-lg bg-zinc-900 text-zinc-100 placeholder-zinc-500 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+            />
+          </label>
+          <label class="flex flex-col gap-1">
+            <span class="text-xs font-medium text-zinc-400">Target ($)</span>
+            <input
+              type="number"
+              bind:value={target}
+              step="0.01"
+              min="0"
+              class="px-3 py-2 text-sm border border-zinc-700 rounded-lg bg-zinc-900 text-zinc-100 placeholder-zinc-500 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+            />
+          </label>
+        </div>
 
         <div class="flex justify-end gap-2 pt-2">
           <button
