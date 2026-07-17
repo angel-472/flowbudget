@@ -92,7 +92,7 @@ class BudgetApi {
     const merged = syncQueue.applyTo('transactions', data || []);
     this.transactions = merged;
     this.#persist();
-    console.log(`💾 Loaded ${merged.length} transactions into Budget API`);
+    console.log(`🌩️ Loaded ${merged.length} cloud transactions into Budget API`);
     signal.emit('TRANSACTIONS_FETCH_ALL', merged);
   }
   /** Drops every trace of the signed-out user's data. */

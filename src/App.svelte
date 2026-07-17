@@ -11,6 +11,7 @@
   import { localCache } from "./api/localCache.js";
   import { syncQueue } from "./api/cloud/syncQueue.js";
     import GoalsView from "./components/goals/GoalsView.svelte";
+    import { goalsApi } from "./api/goalsApi.svelte";
 
   // ── Dark mode ──
   let darkMode = $state(false);
@@ -60,7 +61,7 @@
 
   /** Adopts a confirmed session, then pushes queued writes and pulls fresh data. */
   async function activate(liveUser) {
-    if (user && user.id !== liveUser.id) budgetApi.reset();
+    if (user && user.id !== liveUser.id) resetData();
     user = liveUser;
     localCache.saveSession(liveUser);
     isLoading = false;
@@ -68,6 +69,7 @@
     syncQueue.setReady(true);
     try {
       await budgetApi.sync();
+      await goalsApi.sync();
       isSyncing = false;
     } catch (error) {
       console.warn('FlowBudget: sync failed, retrying shortly.', error);
@@ -76,13 +78,18 @@
   }
 
   function signOutLocally() {
-    syncQueue.setReady(false);
-    budgetApi.reset();
-    syncQueue.clear();
-    localCache.clear();
+    resetData();
     user = null;
     isLoading = false;
     isSyncing = false;
+  }
+
+  function resetData(){
+    syncQueue.setReady(false);
+    budgetApi.reset();
+    goalsApi.reset();
+    syncQueue.clear();
+    localCache.clear();
   }
 
   function connect() {
