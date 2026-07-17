@@ -98,8 +98,6 @@ class BudgetApi {
   /** Drops every trace of the signed-out user's data. */
   reset() {
     this.transactions = [];
-    syncQueue.clear();
-    localCache.clear();
   }
   #queueUpsert(transaction) {
     syncQueue.enqueue('transactions', 'upsert', transaction.id, $state.snapshot(transaction));
@@ -109,6 +107,9 @@ class BudgetApi {
     localCache.saveTransactions($state.snapshot(this.transactions));
   }
 }
+
+
+
 
 export const budgetApi = new BudgetApi();
 console.log('🧳 Budget Data API initialized');

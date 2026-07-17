@@ -78,6 +78,8 @@
   function signOutLocally() {
     syncQueue.setReady(false);
     budgetApi.reset();
+    syncQueue.clear();
+    localCache.clear();
     user = null;
     isLoading = false;
     isSyncing = false;
