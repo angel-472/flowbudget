@@ -6,13 +6,19 @@
   import EditBalanceModal from "./EditBalanceModal.svelte";
   import DeleteGoalModal from "./DeleteGoalModal.svelte";
   import { signal } from "/src/api/signal";
+    import { onDestroy } from "svelte";
 
-  let goals = $state(goalsApi.goals);
+  let goals =  $state(goalsApi.goals);
 
-  signal.sub("UPDATE_GOALS", "GoalsViewComponent", () => {
+  const SIGNAL_SUB_ID = "GoalsViewComponent"
+  signal.sub("UPDATE_GOALS", SIGNAL_SUB_ID, () => {
     requestAnimationFrame(() => {
       goals = goalsApi.goals;
     })
+  });
+
+  onDestroy(() => {
+    signal.unsubAll(SIGNAL_SUB_ID);
   });
 
   let isModalOpen = $state(false);
@@ -61,6 +67,11 @@
       adjustBalanceBtn(goalId);
     }
   }
+
+  // Sorts goals from larger to smaller
+  $effect(() => {
+    goals.sort((a,b) => b.target - a.target)
+  })
 </script>
 
 
