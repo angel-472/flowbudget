@@ -24,6 +24,26 @@ class GoalsApi {
   reset(){
     this.goals = [];
   }
+  delete(id) {
+    let goal = this.getById(id);
+    if(!goal) {
+      console.warn(`Goal with id '${id}' not found for deletion.`);
+      return;
+    }
+    this.goals = this.goals.filter(t => t.id !== id);
+    syncQueue.enqueue('goals', 'delete', id);
+    signal.emit("UPDATE_GOALS", {});
+    this.#persist();
+  }
+  updateGoal(id) {
+    const goal = this.getById(id);
+    if (goal) {
+      this.#queueUpsert(goal);
+    }
+  }
+  getById(id){
+    return this.goals.find(t => t.id === id);
+  }
 
 
 
@@ -58,3 +78,6 @@ class GoalsApi {
 
 
 export const goalsApi = new GoalsApi();
+if (import.meta.env.DEV) {
+ window.goalsApiRef = goalsApi; // Expose for debugging in dev mode
+}
