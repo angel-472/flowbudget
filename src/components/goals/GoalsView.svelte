@@ -57,6 +57,11 @@
     const goal = goalsApi.getById(goalId);
     const adjustmentField = document.getElementById(`ajust_goal_${goal.id}`);
     const modifierValue = parseFloat(adjustmentField.value);
+    if(isNaN(modifierValue)){
+      console.warn("Invalid input passed to goal modifier text field. Skipping.")
+      return;
+    }
+    console.log(modifierValue)
     adjustmentField.value = '';
     goal.balance = Math.min(goal.target, goal.balance + modifierValue);
     goalsApi.updateGoal(goal.id);
@@ -156,7 +161,7 @@
               <div class="mt-1.5 flex items-center gap-2">
                 <input
                   id="ajust_goal_{goal.id}"
-                  type="text"
+                  type="number"
                   placeholder="+/- amount"
                   class="flex-1 min-w-0 px-3 py-2 text-sm border border-zinc-700 rounded-lg bg-zinc-900 text-zinc-100 placeholder-zinc-500 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
                   onkeydown={(event) => adjustBalanceKeyDown(event, goal.id)}
