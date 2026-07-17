@@ -247,7 +247,7 @@
       {#if currentView === "month"}
         <MonthView />
       {:else if currentView === "recurring"}
-        <h2 class="text-center text-xl font-medium p-8">Recurring</h2>
+        <h2 class="text-center text-xl font-medium p-8">Recurring - This section is in construction! 🏗️</h2>
       {:else if currentView === "goals"}
         <GoalsView />
       {/if}

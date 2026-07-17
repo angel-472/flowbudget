@@ -4,6 +4,8 @@ import { localCache } from "./localCache.js";
 import { signal } from "./signal.js";
 import { syncQueue } from "./cloud/syncQueue.js";
 
+// TODO: Add pinned goals
+
 // Polyfill to generate a UUID (if crypto.randomUUID is not available)
 if (!crypto.randomUUID) {
   // @ts-ignore
