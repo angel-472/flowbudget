@@ -46,7 +46,7 @@ class BudgetApi {
     }
     this.transactions = this.transactions.filter(t => t.id !== id);
     signal.emit("UPDATE_TRANSACTION", {transaction});
-    syncQueue.enqueue('transaction', 'delete', id);
+    syncQueue.enqueue('transactions', 'delete', id);
     this.#persist();
   }
   toggleTransactionStatus(id) {
@@ -78,6 +78,10 @@ class BudgetApi {
   getTransactionById(id){
     return this.transactions.find(t => t.id === id);
   }
+
+
+  // CACHE AND SYNC
+
   /**
    * Pushes queued writes, then pulls the server's copy. Anything still queued is
    * replayed on top of the fetched rows, so an unsynced local edit survives.
