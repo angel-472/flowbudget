@@ -71,7 +71,7 @@
   <div class="mb-8">
     <div class="flex items-center justify-center gap-2 mb-6">
       <!-- <Target size={28} class="text-indigo-400" /> -->
-      <h1 class="text-2xl font-bold text-zinc-100">Saving Goals</h1>
+      <h1 class="text-2xl font-bold text-zinc-100">Savings Goals</h1>
     </div>
     <button
       class="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-medium text-zinc-300 rounded-xl border border-zinc-700 hover:bg-zinc-800 transition-colors cursor-pointer"
