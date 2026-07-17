@@ -57,7 +57,7 @@
 
   let isCurrentWeek = $derived.by(() => {
     let today = dateUtils.createLocalDate(new Date().toISOString().split('T')[0]);
-    let currentWeekNum = dateUtils.getWeekNumber(today);
+    let currentWeekNum = dateUtils.getWeekNumber(today, budgetApi.weekStartDay);
     let currentYearNum = today.getFullYear();
     return weekNumber === currentWeekNum && currentYear === currentYearNum;
   }); 

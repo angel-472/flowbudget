@@ -78,7 +78,7 @@
   onMount(() => {
     if (!hasScrolledToCurrentWeek) {
       hasScrolledToCurrentWeek = true;
-      let weekNumber = dateUtils.getWeekNumber(dateUtils.createLocalDate(new Date().toISOString().split('T')[0]));
+      let weekNumber = dateUtils.getWeekNumber(dateUtils.createLocalDate(new Date().toISOString().split('T')[0]), budgetApi.weekStartDay);
       setTimeout(() => scrollTo(`week-view-${weekNumber}`, 80, false), 10);
       
     }
