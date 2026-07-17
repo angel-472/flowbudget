@@ -1,4 +1,6 @@
 <script>
+  import { goalsApi } from "src/api/goalsApi.svelte";
+
   let { open = $bindable(false), onsubmit } = $props();
 
   // form fields (no data functionality yet)
@@ -15,8 +17,10 @@
 
   function handleSubmit(e) {
     e.preventDefault();
+    onsubmit?.({ name, target, balance }); //fires the onsubmit parent function parameter (if added)
+    
     // TODO: wire up goal creation
-    onsubmit?.({ name, target, balance });
+    goalsApi.addGoal({name, target, balance});
     close();
   }
 </script>
