@@ -145,7 +145,7 @@
           <div class="px-4 py-3">
             <!-- Progress bar -->
             <div class="flex items-center justify-between mb-1.5">
-              <span class="text-xs font-medium text-zinc-400">Progress</span>
+              <span class="text-xs font-medium text-zinc-400">{formatCurrency(goal.target - goal.balance)} left.</span>
               <span class="text-xs font-semibold text-indigo-400">{progress(goal)}%</span>
             </div>
             <div class="h-2 w-full rounded-full bg-zinc-800 overflow-hidden">
@@ -170,13 +170,13 @@
                   class="px-3 py-2 text-sm font-medium text-zinc-300 rounded-lg border border-zinc-700 hover:bg-zinc-800 transition-colors cursor-pointer"
                   onclick={() => openEditModal(goal)}
                 >
-                  Edit
+                  Edit Goal
                 </button>
                 <button
                   class="px-3 py-2 text-sm font-medium text-white bg-indigo-500 hover:bg-indigo-600 rounded-lg active:scale-[0.98] transition-all cursor-pointer"
                   onclick={() => adjustBalanceBtn(goal.id)}
                 >
-                  Apply
+                  Update
                 </button>
               </div>
             </div>
