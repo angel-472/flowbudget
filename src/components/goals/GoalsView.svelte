@@ -145,7 +145,7 @@
           <div class="px-4 py-3">
             <!-- Progress bar -->
             <div class="flex items-center justify-between mb-1.5">
-              <span class="text-xs font-medium text-zinc-400">{formatCurrency(goal.target - goal.balance)} left.</span>
+              <span class="text-xs font-medium text-zinc-400">{formatCurrency(goal.target - goal.balance)} left</span>
               <span class="text-xs font-semibold text-indigo-400">{progress(goal)}%</span>
             </div>
             <div class="h-2 w-full rounded-full bg-zinc-800 overflow-hidden">
