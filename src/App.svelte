@@ -12,6 +12,7 @@
   import { syncQueue } from "./api/cloud/syncQueue.js";
     import GoalsView from "./components/goals/GoalsView.svelte";
     import { goalsApi } from "./api/goalsApi.svelte";
+    import RecurringView from "./components/recurring/RecurringView.svelte";
 
   // ── Dark mode ──
   let darkMode = $state(false);
@@ -247,7 +248,7 @@
       {#if currentView === "month"}
         <MonthView />
       {:else if currentView === "recurring"}
-        <h2 class="text-center text-xl font-medium p-8">Recurring - This section is under construction! 🏗️</h2>
+        <RecurringView />
       {:else if currentView === "goals"}
         <GoalsView />
       {/if}

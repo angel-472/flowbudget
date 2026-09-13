@@ -6,7 +6,7 @@
   import EditBalanceModal from "./EditBalanceModal.svelte";
   import DeleteGoalModal from "./DeleteGoalModal.svelte";
   import { signal } from "/src/api/signal";
-    import { onDestroy } from "svelte";
+  import { onDestroy } from "svelte";
 
   let goals =  $state(goalsApi.goals);
 
