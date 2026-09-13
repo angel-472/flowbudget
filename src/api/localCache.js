@@ -4,7 +4,8 @@
 const SESSION_KEY = 'flowbudget:session';
 const TRANSACTIONS_KEY = 'flowbudget:transactions';
 const QUEUE_KEY = 'flowbudget:queue';
-const GOALS_KEY = 'flowbudget:goals'
+const GOALS_KEY = 'flowbudget:goals';
+const RECURRING_KEY = 'flowbudget:recurring';
  
 function read(key, fallback) {
   try {
@@ -64,11 +65,19 @@ class LocalCache {
   saveGoals(goals){
     write(GOALS_KEY, goals);
   }
+  loadRecurring(){
+    const recurring = read(RECURRING_KEY, []);
+    return Array.isArray(recurring) ? recurring : [];
+  }
+  saveRecurring(recurring){
+    write(RECURRING_KEY, recurring);
+  }
   clear() {
     remove(SESSION_KEY);
     remove(TRANSACTIONS_KEY);
     remove(QUEUE_KEY);
     remove(GOALS_KEY);
+    remove(RECURRING_KEY);
   }
 }
 
