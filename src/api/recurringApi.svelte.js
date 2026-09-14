@@ -1,0 +1,70 @@
+import { localCache } from "./localCache.js";
+import { databaseApi } from "./cloud/databaseApi.js";
+import { syncQueue } from "./cloud/syncQueue.js";
+import { signal } from "./signal.js";
+
+
+const TABLE_NAME = "recurring";
+
+class RecurringApi {
+  constructor(){
+    this.recurring = $state(localCache.loadRecurring());
+  }
+  getAllRecurring(){
+    return this.recurring;
+  }
+  addRecurring(data){
+    console.log(`Adding recurring expense with data: `, data);
+    let newRecurring = {
+      id: data.id || crypto.randomUUID(),
+      name: data.name,
+      amount: parseFloat(data.amount) || 0,
+      frequencyDays: parseInt(data.frequencyDays) || 30,
+      startDate: data.startDate
+    }
+    this.recurring.push(newRecurring);
+    this.#queueUpsert(newRecurring);
+  }
+  getById(id){
+    return this.recurring.find(t => t.id === id);
+  }
+  getNewRecurring(){
+    return {isNew: true, id: crypto.randomUUID(), name: '', amount: 0, frequencyDays: 30, startDate: new Date().toISOString().split('T')[0]};
+  }
+  reset(){
+    this.recurring = [];
+  }
+
+    // CACHE AND SYNC
+
+  /**
+   * Pushes queued writes, then pulls the server's copy. Anything still queued is
+   * replayed on top of the fetched rows, so an unsynced local edit survives.
+   */
+  sync() {
+    this.syncing ??= this.#sync().finally(() => { this.syncing = null; });
+    return this.syncing;
+  }
+  async #sync() {
+    await syncQueue.flush();
+    const data = await databaseApi.getAll(TABLE_NAME);
+    const merged = syncQueue.applyTo(TABLE_NAME, data || []);
+    this.recurring = merged;
+    this.#persist();
+    console.log(`🌩️ Loaded ${merged.length} cloud ${TABLE_NAME}s into ${TABLE_NAME.toUpperCase()} API`);
+    signal.emit(TABLE_NAME.toUpperCase() + '_FETCH_ALL', merged);
+  }
+  #queueUpsert(expense) {
+    syncQueue.enqueue(TABLE_NAME, 'upsert', expense.id, $state.snapshot(expense));
+    this.#persist();
+  }
+  #persist(){
+    localCache.saveRecurring($state.snapshot(this.recurring));
+  }
+}
+
+export const recurringApi = new RecurringApi();
+
+if(import.meta.env.DEV){
+  window.recurringApiRef = recurringApi;
+}

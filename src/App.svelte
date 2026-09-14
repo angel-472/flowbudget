@@ -13,6 +13,7 @@
     import GoalsView from "./components/goals/GoalsView.svelte";
     import { goalsApi } from "./api/goalsApi.svelte";
     import RecurringView from "./components/recurring/RecurringView.svelte";
+    import { recurringApi } from "./api/recurringApi.svelte";
 
   // ── Dark mode ──
   let darkMode = $state(false);
@@ -71,6 +72,8 @@
     try {
       await budgetApi.sync();
       await goalsApi.sync();
+      await recurringApi.sync();
+      
       isSyncing = false;
     } catch (error) {
       console.warn('FlowBudget: sync failed, retrying shortly.', error);
@@ -87,8 +90,11 @@
 
   function resetData(){
     syncQueue.setReady(false);
+
     budgetApi.reset();
     goalsApi.reset();
+    recurringApi.reset()
+
     syncQueue.clear();
     localCache.clear();
   }

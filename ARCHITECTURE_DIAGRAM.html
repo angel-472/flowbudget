@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FlowBudget Architecture</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --surface: #ffffff; --surface-2: #f1f3f6; --border: #dfe3e8;
+    --text: #1d2330; --muted: #5d6675; --faint: #8a93a1;
+    --render: #4f5bd5; --call: #0f8a7e; --signal: #b86e00; --io: #c2415b;
+    --shadow: 0 1px 2px rgba(0,0,0,.08), 0 1px 3px rgba(0,0,0,.06);
+    --shadow-2: 0 2px 6px rgba(0,0,0,.12), 0 1px 3px rgba(0,0,0,.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111318; --surface: #1b1e25; --surface-2: #232730; --border: #323743;
+      --text: #e6e8ec; --muted: #a3aab6; --faint: #737b88;
+      --render: #8d97ff; --call: #3cc2b3; --signal: #f0a53a; --io: #f27a92;
+      --shadow: 0 1px 2px rgba(0,0,0,.5); --shadow-2: 0 3px 8px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #111318; --surface: #1b1e25; --surface-2: #232730; --border: #323743;
+    --text: #e6e8ec; --muted: #a3aab6; --faint: #737b88;
+    --render: #8d97ff; --call: #3cc2b3; --signal: #f0a53a; --io: #f27a92;
+    --shadow: 0 1px 2px rgba(0,0,0,.5); --shadow-2: 0 3px 8px rgba(0,0,0,.6);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  code, .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12px; }
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 32px 20px 80px; }
+  h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -.01em; }
+  h2 { font-size: 18px; margin: 48px 0 12px; }
+  h3 { font-size: 14px; margin: 0 0 8px; }
+  .lede { color: var(--muted); margin: 0 0 20px; max-width: 75ch; }
+
+  /* toolbar */
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-bottom: 10px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); cursor: pointer; user-select: none; font-size: 13px; }
+  .chip input { margin: 0; accent-color: var(--muted); }
+  .swatch { width: 22px; height: 0; border-top: 2px solid; }
+  .swatch.signal { border-top-style: dashed; }
+  .swatch.io { border-top-style: dotted; border-top-width: 3px; }
+  .zoom { display: flex; gap: 4px; margin-left: auto; }
+  button.btn { font: inherit; font-size: 13px; padding: 5px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; }
+  button.btn:hover { background: var(--surface-2); }
+  .hint { color: var(--faint); font-size: 12px; margin: 0 0 8px; }
+
+  /* board */
+  .viewport { overflow: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-2); max-height: 82vh; }
+  .viewport.can-pan, .viewport.can-pan .card { cursor: grab; }
+  .viewport.panning, .viewport.panning .card { cursor: grabbing; user-select: none; }
+  .sizer { position: relative; }
+  .board { position: relative; display: flex; gap: 56px; padding: 20px 28px 28px; transform-origin: 0 0; width: max-content; }
+  .col { width: 250px; display: flex; flex-direction: column; gap: 14px; }
+  .col.narrow { width: 200px; }
+  .col-title { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); height: 18px; }
+  svg.edges { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+
+  .card { position: relative; z-index: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); cursor: pointer; transition: opacity .15s, box-shadow .15s; }
+  .card:hover { box-shadow: var(--shadow-2); }
+  .card-h { padding: 9px 11px 7px; border-bottom: 1px solid var(--border); }
+  .card-h .name { font-weight: 650; font-size: 14px; }
+  .card-h .file { color: var(--faint); font-size: 11px; font-family: ui-monospace, Menlo, monospace; word-break: break-all; }
+  .tag { float: right; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; padding: 1px 6px; border-radius: 4px; background: var(--surface-2); color: var(--muted); margin-left: 6px; }
+  .card-b { padding: 6px 11px 9px; }
+  .sec { margin-top: 5px; }
+  .sec-t { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--faint); }
+  .sec ul { list-style: none; margin: 1px 0 0; padding: 0; }
+  .sec li { font-family: ui-monospace, Menlo, monospace; font-size: 11.5px; color: var(--text); padding: 1px 0; overflow-wrap: anywhere; }
+  .sec li .c { color: var(--faint); font-family: system-ui, sans-serif; font-size: 11px; }
+  .sec.signals li { color: var(--signal); }
+  .note { font-size: 11.5px; color: var(--muted); margin-top: 5px; }
+
+  .board.focus .card { opacity: .28; }
+  .board.focus .card.lit { opacity: 1; }
+  .board.focus .card.sel { opacity: 1; outline: 2px solid var(--text); outline-offset: 1px; }
+
+  path.edge { fill: none; stroke-width: 1.4; opacity: .38; transition: opacity .15s; }
+  path.edge.render { stroke: var(--render); }
+  path.edge.call { stroke: var(--call); }
+  path.edge.signal { stroke: var(--signal); stroke-dasharray: 6 4; }
+  path.edge.io { stroke: var(--io); stroke-dasharray: 1.5 3.5; stroke-width: 2.2; stroke-linecap: round; }
+  .board.focus path.edge { opacity: .05; }
+  .board.focus path.edge.lit { opacity: 1; stroke-width: 2; }
+  .hide-render .render, .hide-call .call, .hide-signal .signal, .hide-io .io { display: none; }
+  text.elabel { font: 11px ui-monospace, Menlo, monospace; paint-order: stroke; stroke: var(--surface-2); stroke-width: 4px; stroke-linejoin: round; }
+  text.elabel.render { fill: var(--render); } text.elabel.call { fill: var(--call); }
+  text.elabel.signal { fill: var(--signal); } text.elabel.io { fill: var(--io); }
+
+  /* lower sections */
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; box-shadow: var(--shadow); }
+  ol.steps { margin: 0; padding-left: 20px; }
+  ol.steps li { margin: 5px 0; }
+  ol.steps li::marker { color: var(--faint); }
+  .m { font-family: ui-monospace, Menlo, monospace; font-size: 12px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 4px; padding: 0 4px; white-space: nowrap; }
+  .tbl-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-size: 12px; color: var(--muted); font-weight: 600; background: var(--surface-2); }
+  tr:last-child td { border-bottom: 0; }
+  td.sig { color: var(--signal); font-family: ui-monospace, Menlo, monospace; font-size: 12px; white-space: nowrap; }
+  .none { color: var(--io); }
+  ul.obs { margin: 0; padding-left: 18px; } ul.obs li { margin: 6px 0; }
+  @media (max-width: 640px) { .zoom { margin-left: 0; } h1 { font-size: 22px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>FlowBudget architecture</h1>
+  <p class="lede">Svelte 5 + Vite SPA. Components render from three reactive store singletons, which write to a local cache immediately and push changes to Supabase through a persistent sync queue. Components also talk to each other through a small pub/sub signal bus.</p>
+
+  <div class="toolbar">
+    <div class="legend" id="legend">
+      <label class="chip"><input type="checkbox" data-kind="render" checked><span class="swatch" style="border-color:var(--render)"></span>renders / mounts</label>
+      <label class="chip"><input type="checkbox" data-kind="call" checked><span class="swatch" style="border-color:var(--call)"></span>imports &amp; calls</label>
+      <label class="chip"><input type="checkbox" data-kind="signal" checked><span class="swatch signal" style="border-color:var(--signal)"></span>signal emit → sub</label>
+      <label class="chip"><input type="checkbox" data-kind="io" checked><span class="swatch io" style="border-color:var(--io)"></span>storage / network</label>
+    </div>
+    <div class="zoom">
+      <button class="btn" id="zout" aria-label="Zoom out">−</button>
+      <button class="btn" id="zreset">100%</button>
+      <button class="btn" id="zin" aria-label="Zoom in">+</button>
+      <button class="btn" id="zfit">Fit</button>
+    </div>
+  </div>
+  <p class="hint">Hover a box to trace its connections (labels show the members used). Click to pin, click empty space to clear. Scroll to zoom at the cursor; hold Space and drag (or middle-drag) to pan.</p>
+
+  <div class="viewport" id="viewport">
+    <div class="sizer" id="sizer">
+      <div class="board" id="board">
+        <svg class="edges" id="edges"></svg>
+      </div>
+    </div>
+  </div>
+
+  <h2>Key flows</h2>
+  <div class="grid">
+    <div class="panel">
+      <h3>1 · Boot &amp; auth</h3>
+      <ol class="steps">
+        <li><span class="m">index.html</span> loads <span class="m">main.js</span> → <span class="m">mount(App, #app)</span>.</li>
+        <li>Importing the stores constructs singletons that hydrate from <span class="m">localCache</span> (transactions, goals, recurring, queue).</li>
+        <li><span class="m">App</span> reads <span class="m">localCache.loadSession()</span>. Cached user → render UI immediately with the "Syncing…" pill; none → spinner.</li>
+        <li><span class="m">connect()</span> → <span class="m">auth.getCurrentUserResult()</span>:
+          live user → <span class="m">activate()</span>; offline with cached user → keep cache, <span class="m">scheduleReconnect()</span> (15s); otherwise <span class="m">signOutLocally()</span> → <span class="m">AuthScreen</span>.</li>
+        <li><span class="m">activate()</span>: reset data if the user id changed, save session, <span class="m">syncQueue.setReady(true)</span>, then <span class="m">budgetApi.sync()</span> → <span class="m">goalsApi.sync()</span> → <span class="m">recurringApi.sync()</span>.</li>
+        <li><span class="m">AuthScreen</span> calls <span class="m">signIn/signUp</span>; the <span class="m">onAuthStateChange</span> listener in App fires <span class="m">SIGNED_IN</span> → <span class="m">activate()</span>.</li>
+      </ol>
+    </div>
+    <div class="panel">
+      <h3>2 · Write path (add / edit transaction)</h3>
+      <ol class="steps">
+        <li><span class="m">MonthView</span> / <span class="m">WeekCard</span> / <span class="m">TransactionList</span> emit <span class="m">OPEN_TRANSACTION_FORM</span>.</li>
+        <li><span class="m">TransactionForm</span> (subscribed) opens and pre-fills the form.</li>
+        <li>On submit: <span class="m">budgetApi.addTransaction()</span> or <span class="m">updateTransaction(id)</span>, then emit <span class="m">UPDATE_TRANSACTION</span>.</li>
+        <li>Store mutates <span class="m">$state</span> → <span class="m">#queueUpsert</span> → <span class="m">syncQueue.enqueue('transactions','upsert',id,snapshot)</span> + <span class="m">#persist</span> → <span class="m">localCache.saveTransactions</span>.</li>
+        <li><span class="m">enqueue</span> collapses older ops for the same id, saves the queue, calls <span class="m">flush()</span>.</li>
+        <li><span class="m">#drain</span> → <span class="m">databaseApi.upsert/delete</span> → <span class="m">flowbudget_&lt;table&gt;</span>. Offline → pause; other errors retried up to 3× then dropped; leftovers retried after 15s or on <span class="m">online</span>.</li>
+        <li><span class="m">WeekCard</span>s receive <span class="m">UPDATE_TRANSACTION</span> → <span class="m">updateTransactionData()</span> re-queries <span class="m">getTransactionsForWeek</span>.</li>
+      </ol>
+    </div>
+    <div class="panel">
+      <h3>3 · Sync (pull) &amp; sign-out</h3>
+      <ol class="steps">
+        <li><span class="m">store.sync()</span> de-dupes concurrent calls via <span class="m">this.syncing</span>.</li>
+        <li><span class="m">#sync</span>: <span class="m">await syncQueue.flush()</span> → <span class="m">databaseApi.getAll(table)</span>.</li>
+        <li><span class="m">syncQueue.applyTo(table, rows)</span> replays still-pending ops so unsynced local edits survive.</li>
+        <li>Replace store array, <span class="m">#persist</span>, emit <span class="m">&lt;TABLE&gt;_FETCH_ALL</span> (only <span class="m">TRANSACTIONS_FETCH_ALL</span> has a subscriber).</li>
+        <li>Sign-out / <span class="m">SIGNED_OUT</span> / rejected session → <span class="m">resetData()</span>: <span class="m">setReady(false)</span>, every store <span class="m">reset()</span>, <span class="m">syncQueue.clear()</span>, <span class="m">localCache.clear()</span>.</li>
+      </ol>
+    </div>
+  </div>
+
+  <h2>Signal catalog</h2>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Signal</th><th>Emitted by</th><th>Subscribed by (sub id)</th><th>Payload</th></tr></thead>
+      <tbody>
+        <tr><td class="sig">OPEN_TRANSACTION_FORM</td><td>MonthView.handleAddTransaction, WeekCard.openAddItemModal, TransactionList.handleEditTransaction</td><td>TransactionForm</td><td><code>{ transaction }</code></td></tr>
+        <tr><td class="sig">UPDATE_TRANSACTION</td><td>budgetApi.deleteTransaction / toggleTransactionStatus, TransactionForm.handleSubmit, TransactionList.confirmDelete</td><td>WeekCard (<code>W{week}_{month}_{year}</code>)</td><td><code>{ transaction }</code></td></tr>
+        <tr><td class="sig">TRANSACTIONS_FETCH_ALL</td><td>budgetApi.#sync</td><td>WeekCard</td><td><code>Transaction[]</code></td></tr>
+        <tr><td class="sig">NAVIGATE_TO_DATE</td><td>SearchOverlay.handleSelect</td><td>MonthView (<code>month-view</code>)</td><td><code>{ date }</code></td></tr>
+        <tr><td class="sig">UPDATE_GOALS</td><td>goalsApi.delete</td><td>GoalsView (<code>GoalsViewComponent</code>)</td><td><code>{}</code></td></tr>
+        <tr><td class="sig">GOALS_FETCH_ALL</td><td>goalsApi.#sync</td><td class="none">none</td><td><code>Goal[]</code></td></tr>
+        <tr><td class="sig">RECURRING_FETCH_ALL</td><td>recurringApi.#sync</td><td class="none">none</td><td><code>Recurring[]</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Persistence</h2>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>localStorage key</th><th>Written by</th><th>Supabase table</th><th>Row shape</th></tr></thead>
+      <tbody>
+        <tr><td><code>flowbudget:session</code></td><td>App.activate → localCache.saveSession</td><td>Supabase Auth</td><td><code>{ id, email }</code></td></tr>
+        <tr><td><code>flowbudget:transactions</code></td><td>budgetApi.#persist</td><td><code>flowbudget_transactions</code></td><td><code>{ id, type, category, description, amount, date, status, user_id }</code></td></tr>
+        <tr><td><code>flowbudget:goals</code></td><td>goalsApi.#persist</td><td><code>flowbudget_goals</code></td><td><code>{ id, name, target, balance, user_id }</code></td></tr>
+        <tr><td><code>flowbudget:recurring</code></td><td>recurringApi.#persist</td><td><code>flowbudget_recurring</code></td><td><code>{ id, amount, frequencyDays, user_id }</code></td></tr>
+        <tr><td><code>flowbudget:queue</code></td><td>syncQueue (enqueue / clear / #drain)</td><td>—</td><td><code>{ type, op, id, payload, attempts }[]</code></td></tr>
+        <tr><td><code>darkMode</code></td><td>App.toggleDarkMode (direct, not via localCache)</td><td>—</td><td><code>"true" | "false"</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Things noticed while mapping</h2>
+  <div class="panel">
+    <ul class="obs">
+      <li><b>GoalsView</b> and <b>RecurringView</b> copy the store array into local <code>$state</code> once. <code>sync()</code> reassigns the store array, and nobody subscribes to <code>GOALS_FETCH_ALL</code> / <code>RECURRING_FETCH_ALL</code>, so fresh cloud data won't show until the view remounts (GoalsView also catches <code>UPDATE_GOALS</code>, but only delete emits it).</li>
+      <li><code>recurringApi.addRecurring</code> builds <code>{ id, amount, frequencyDays }</code> and drops <code>name</code>, which <code>RecurringForm</code> sets.</li>
+      <li>The edit branch of <code>RecurringForm.handleSubmit</code> is empty, and the RecurringView "Edit" button has no handler yet (work in progress).</li>
+      <li><code>syncQueue.enqueue</code> collapses pending ops by <code>id</code> only, not by <code>type</code>+<code>id</code>. That's harmless with UUIDs but worth knowing.</li>
+      <li><code>App.svelte</code> reads and writes <code>darkMode</code> in localStorage directly, so <code>localCache.clear()</code> leaves it alone.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+const NODES = [
+  // ── col 0: entry
+  { id: 'index', col: 0, name: 'index.html', file: 'index.html', tag: 'entry',
+    secs: [['contains', ['div#app  <span class="c">mount target</span>', 'Google Sans / Montserrat fonts', 'site.webmanifest (PWA)']]] },
+  { id: 'main', col: 0, name: 'main.js', file: 'src/main.js', tag: 'entry',
+    secs: [['does', ["import './app.css'  <span class=\"c\">Tailwind v4</span>", 'mount(App, { target: #app })', 'export default app']]],
+    note: 'Built by Vite (@sveltejs/vite-plugin-svelte, @tailwindcss/vite). Deployed to Cloudflare Pages.' },
+
+  // ── col 1: root
+  { id: 'App', col: 1, name: 'App', file: 'src/App.svelte', tag: 'root',
+    secs: [
+      ['state', ['user  <span class="c">← localCache session</span>', 'isLoading, isSyncing', "currentView  <span class=\"c\">month | recurring | goals</span>", 'darkMode', 'showSearch, showScrollButton', 'connecting, reconnectTimer', 'RECONNECT_DELAY_MS = 15000']],
+      ['methods', ['connect()', 'activate(liveUser)', 'signOutLocally()', 'resetData()', 'scheduleReconnect()', 'handleSignOut()', 'toggleDarkMode()', 'scrollToTop()']],
+      ['listeners', ['onAuthStateChange(SIGNED_IN | SIGNED_OUT)', "window 'online' → connect()", "window 'scroll'", '⌘/Ctrl+K → showSearch']],
+      ['renders', ['isLoading → spinner', '!user → AuthScreen', 'else → TransactionForm, tabs, view']]
+    ] },
+
+  // ── col 2: screens
+  { id: 'AuthScreen', col: 2, name: 'AuthScreen', file: 'components/AuthScreen.svelte', tag: 'screen',
+    secs: [['state', ['isSignUp, email, password', 'confirmPassword', 'showPassword, showConfirmPassword', 'error, isSubmitting']], ['methods', ['handleSubmit()']]] },
+  { id: 'TransactionForm', col: 2, name: 'TransactionForm', file: 'components/budget/TransactionForm.svelte', tag: 'modal',
+    secs: [['state', ['isOpen, isNewTransaction', 'id, type, date, description', 'amount, category, status']], ['methods', ['handleSubmit(e)', 'handleClose()']], ['signals', ['sub OPEN_TRANSACTION_FORM', 'emit UPDATE_TRANSACTION']]] },
+  { id: 'SearchOverlay', col: 2, name: 'SearchOverlay', file: 'components/budget/SearchOverlay.svelte', tag: 'overlay',
+    secs: [['props', ['onClose']], ['state', ['query', '$derived searchList, fuse, results']], ['methods', ['handleKeydown(e)', 'handleSelect(t)', 'formatDate(dateStr)']], ['signals', ['emit NAVIGATE_TO_DATE']]] },
+  { id: 'MonthView', col: 2, name: 'MonthView', file: 'components/budget/MonthView.svelte', tag: 'view',
+    secs: [['state', ['currentMonth, currentYear', '$derived monthName, isCurrentMonth', '$derived weeksInMonth', '$derived monthlySummary']], ['methods', ['selectPrevMonth()', 'selectNextMonth()', 'handleAddTransaction()', 'scrollTo(id, offset, smooth)']], ['signals', ['sub NAVIGATE_TO_DATE', 'emit OPEN_TRANSACTION_FORM']]] },
+  { id: 'RecurringView', col: 2, name: 'RecurringView', file: 'components/recurring/RecurringView.svelte', tag: 'view',
+    secs: [['state', ['recurringExpenses  <span class="c">← recurringApi.recurring</span>', 'isFormOpen', 'currentExpense']], ['methods', ['openForm(expenseId)']]] },
+  { id: 'GoalsView', col: 2, name: 'GoalsView', file: 'components/goals/GoalsView.svelte', tag: 'view',
+    secs: [['state', ['goals  <span class="c">← goalsApi.goals</span>', 'isModalOpen', 'isEditOpen, editGoal', 'isDeleteOpen, deleteGoal', 'balanceModifierValue']], ['methods', ['openModal()', 'openEditModal(goal)', 'openDeleteModal(goal)', 'progress(goal)', 'adjustBalanceBtn(goalId)', 'adjustBalanceKeyDown(e, goalId)', '$effect → sort by target']], ['signals', ['sub UPDATE_GOALS']]] },
+
+  // ── col 3: children
+  { id: 'WeekCard', col: 3, name: 'WeekCard', file: 'components/budget/WeekCard.svelte', tag: 'child',
+    secs: [['props', ['weekNumber, currentMonth, currentYear']], ['state', ['incomes, expenses', 'dateRange', '$derived weeklyNet, isCurrentWeek']], ['methods', ['openAddItemModal()', 'updateTransactionData()']], ['signals', ['sub TRANSACTIONS_FETCH_ALL', 'sub UPDATE_TRANSACTION', 'emit OPEN_TRANSACTION_FORM']]] },
+  { id: 'TransactionList', col: 3, name: 'TransactionList', file: 'components/budget/TransactionList.svelte', tag: 'child',
+    secs: [['props', ["type  <span class=\"c\">incomes | expenses</span>", 'transactions']], ['state', ['showDeleteModal, transactionToDelete', '$derived isIncome']], ['methods', ['handleToggleStatus(id)', 'handleEditTransaction(id)', 'handleDeleteTransaction(id)', 'confirmDelete()', 'closeDeleteModal()']], ['signals', ['emit OPEN_TRANSACTION_FORM', 'emit UPDATE_TRANSACTION']]] },
+  { id: 'RecurringForm', col: 3, name: 'RecurringForm', file: 'components/recurring/RecurringForm.svelte', tag: 'modal',
+    secs: [['props', ['bind:open', 'onsubmit', 'currentExpense']], ['state', ['name, amount, frequencyDays']], ['methods', ['close()', 'handleSubmit(e)']]] },
+  { id: 'AddGoalModal', col: 3, name: 'AddGoalModal', file: 'components/goals/AddGoalModal.svelte', tag: 'modal',
+    secs: [['props', ['bind:open', 'onsubmit']], ['state', ['name, target, balance']], ['methods', ['close()', 'handleSubmit(e)']]] },
+  { id: 'EditBalanceModal', col: 3, name: 'EditBalanceModal', file: 'components/goals/EditBalanceModal.svelte', tag: 'modal',
+    secs: [['props', ['bind:open', 'goal, onsubmit, onclose']], ['state', ['name, balance, target', '$derived progress', '$effect ← goal']], ['methods', ['close()', 'handleSubmit(e)']]] },
+  { id: 'DeleteGoalModal', col: 3, name: 'DeleteGoalModal', file: 'components/goals/DeleteGoalModal.svelte', tag: 'modal',
+    secs: [['props', ['bind:open', 'goal, onclose']], ['methods', ['close()', 'confirmDelete()']]] },
+
+  // ── col 4: stores
+  { id: 'budgetApi', col: 4, name: 'budgetApi', file: 'api/budgetApi.svelte.js', tag: 'store',
+    secs: [['fields', ['transactions  <span class="c">$state</span>', 'syncing  <span class="c">Promise | null</span>', 'weekStartDay = 5  <span class="c">Fri</span>']], ['methods', ['getAllTransactions()', 'addTransaction(data)', 'deleteTransaction(id)', 'toggleTransactionStatus(id)', 'updateTransaction(id)', 'getTransactionsForWeek(y, wk, type)', 'getTransactionById(id)', 'sync()', 'reset()', '#sync()  #queueUpsert(t)  #persist()']], ['signals', ['emit UPDATE_TRANSACTION', 'emit TRANSACTIONS_FETCH_ALL']]],
+    note: 'Row: { id, type, category, description, amount, date, status }. Polyfills crypto.randomUUID. window.budgetApiRef in dev.' },
+  { id: 'goalsApi', col: 4, name: 'goalsApi', file: 'api/goalsApi.svelte.js', tag: 'store',
+    secs: [['fields', ['goals  <span class="c">$state</span>', 'syncing']], ['methods', ['getAllGoals()', 'addGoal(data)', 'delete(id)', 'updateGoal(id)', 'getById(id)', 'sync()', 'reset()', '#sync()  #queueUpsert(g)  #persist()']], ['signals', ['emit UPDATE_GOALS', 'emit GOALS_FETCH_ALL']]],
+    note: 'Row: { id, name, target (default 500), balance }' },
+  { id: 'recurringApi', col: 4, name: 'recurringApi', file: 'api/recurringApi.svelte.js', tag: 'store · new',
+    secs: [['fields', ['recurring  <span class="c">$state</span>', 'syncing', "TABLE_NAME = 'recurring'"]], ['methods', ['getAllRecurring()', 'addRecurring(data)', 'getById(id)', 'getNewRecurring()', 'sync()', 'reset()', '#sync()  #queueUpsert(e)  #persist()']], ['signals', ['emit RECURRING_FETCH_ALL']]],
+    note: 'Row: { id, amount, frequencyDays (default 30) }' },
+
+  // ── col 5: shared + queue
+  { id: 'signal', col: 5, name: 'signal', file: 'api/signal.js', tag: 'event bus',
+    secs: [['fields', ['subs  <span class="c">{ [signal]: { [id]: cb } }</span>']], ['methods', ['sub(name, id, cb)', 'unsub(name, id)', 'unsubAll(id)', 'emit(name, data)', 'emitPrivate(name, data, ids)']]],
+    note: 'Used by nearly every component. Emit → subscriber edges are drawn directly instead of through this hub; see the catalog below.' },
+  { id: 'syncQueue', col: 5, name: 'syncQueue', file: 'api/cloud/syncQueue.js', tag: 'sync',
+    secs: [['fields', ['ops  <span class="c">{type, op, id, payload, attempts}[]</span>', 'ready, draining, retryTimer', 'get size', 'MAX_ATTEMPTS = 3', 'RETRY_DELAY_MS = 15000']], ['methods', ['setReady(ready)', 'enqueue(type, op, id, payload)', 'clear()', 'applyTo(dataType, rows)', 'flush()', '#drain()  #scheduleRetry()', 'looksOffline(err)  <span class="c">module fn</span>']], ['listeners', ["window 'online' → flush()"]]] },
+  { id: 'dateUtils', col: 5, name: 'dateUtils', file: 'api/dateUtils.js', tag: 'util',
+    secs: [['methods', ['createLocalDate(yyyy-mm-dd)', 'getWeekNumber(date, weekStartsOn)', 'getWeekDateRange(y, wk, weekStartsOn)', 'getWeeksInMonth(y, m, weekStartsOn)']]] },
+  { id: 'utils', col: 5, name: 'utils', file: 'api/utils.js', tag: 'util',
+    secs: [['exports', ['formatCurrency(amount)  <span class="c">USD</span>', 'formatDate(dateString)']]] },
+
+  // ── col 6: infra
+  { id: 'localCache', col: 6, name: 'localCache', file: 'api/localCache.js', tag: 'cache',
+    secs: [['keys', ['flowbudget:session', 'flowbudget:transactions', 'flowbudget:goals', 'flowbudget:recurring', 'flowbudget:queue']], ['methods', ['loadSession() / saveSession(user)', 'loadTransactions() / saveTransactions()', 'loadGoals() / saveGoals()', 'loadRecurring() / saveRecurring()', 'loadQueue() / saveQueue()', 'clear()', 'read / write / remove  <span class="c">private fns</span>']]] },
+  { id: 'databaseApi', col: 6, name: 'databaseApi', file: 'api/cloud/databaseApi.js', tag: 'cloud',
+    secs: [['fields', ['supabase']], ['methods', ['getAll(table)', 'upsert(table, row)  <span class="c">adds user_id</span>', 'delete(table, rowId)']]],
+    note: 'Table name = flowbudget_${table}' },
+  { id: 'auth', col: 6, name: 'auth', file: 'api/cloud/auth.js', tag: 'cloud',
+    secs: [['exports', ['signUp(email, pw)', 'signIn(email, pw)', 'signOut()', 'getCurrentUser()', 'getCurrentUserResult()  <span class="c">{user, offline}</span>', 'isAuthenticated()', 'onAuthStateChange(cb)', 'resetPassword(email)', 'updatePassword(pw)']]] },
+
+  // ── col 7: client + libs
+  { id: 'supabaseClient', col: 7, name: 'supabaseClient', file: 'api/cloud/supabaseClient.js', tag: 'cloud',
+    secs: [['exports', ['supabase  <span class="c">createClient()</span>', 'handleSupabaseError(err)', 'getCurrentUserId()']], ['env', ['VITE_SUPABASE_URL', 'VITE_SUPABASE_ANON_KEY']]] },
+  { id: 'fuse', col: 7, name: 'fuse.js', file: 'npm', tag: 'lib',
+    secs: [['used for', ['fuzzy search over transactions']]] },
+
+  // ── col 8: external
+  { id: 'supabase', col: 8, name: 'Supabase', file: 'external service', tag: 'ext',
+    secs: [['auth', ['sessions, JWT refresh']], ['tables', ['flowbudget_transactions', 'flowbudget_goals', 'flowbudget_recurring']]] },
+  { id: 'storage', col: 8, name: 'localStorage', file: 'browser', tag: 'ext',
+    secs: [['keys', ['flowbudget:*', 'darkMode']]] },
+];
+
+const COLS = ['Entry', 'Root', 'Screens & overlays', 'Child components', 'Reactive stores', 'Shared & sync', 'Infrastructure', 'Client & libs', 'External'];
+
+// [from, to, kind, label]
+const EDGES = [
+  ['index', 'main', 'render', '<script src=main.js>'],
+  ['main', 'App', 'render', 'mount()'],
+  ['App', 'AuthScreen', 'render', '!user'],
+  ['App', 'TransactionForm', 'render', 'user'],
+  ['App', 'SearchOverlay', 'render', 'showSearch · onClose'],
+  ['App', 'MonthView', 'render', "view 'month'"],
+  ['App', 'RecurringView', 'render', "view 'recurring'"],
+  ['App', 'GoalsView', 'render', "view 'goals'"],
+  ['MonthView', 'WeekCard', 'render', 'each week · {weekNumber, currentMonth, currentYear}'],
+  ['WeekCard', 'TransactionList', 'render', 'type · transactions (×2)'],
+  ['RecurringView', 'RecurringForm', 'render', 'bind:open · currentExpense'],
+  ['GoalsView', 'AddGoalModal', 'render', 'bind:open'],
+  ['GoalsView', 'EditBalanceModal', 'render', 'bind:open · goal'],
+  ['GoalsView', 'DeleteGoalModal', 'render', 'bind:open · goal'],
+
+  ['App', 'budgetApi', 'call', 'sync() · reset()'],
+  ['App', 'goalsApi', 'call', 'sync() · reset()'],
+  ['App', 'recurringApi', 'call', 'sync() · reset()'],
+  ['App', 'syncQueue', 'call', 'setReady() · clear()'],
+  ['App', 'localCache', 'call', 'loadSession · saveSession · clear'],
+  ['App', 'auth', 'call', 'getCurrentUserResult · onAuthStateChange · signOut'],
+  ['AuthScreen', 'auth', 'call', 'signIn · signUp'],
+  ['TransactionForm', 'budgetApi', 'call', 'getTransactionById · addTransaction · updateTransaction'],
+  ['TransactionForm', 'dateUtils', 'call', 'import'],
+  ['SearchOverlay', 'budgetApi', 'call', '.transactions'],
+  ['SearchOverlay', 'fuse', 'call', 'new Fuse()'],
+  ['SearchOverlay', 'utils', 'call', 'formatCurrency'],
+  ['SearchOverlay', 'dateUtils', 'call', 'createLocalDate'],
+  ['MonthView', 'budgetApi', 'call', 'getAllTransactions · weekStartDay'],
+  ['MonthView', 'dateUtils', 'call', 'getWeeksInMonth · getWeekNumber · createLocalDate'],
+  ['MonthView', 'utils', 'call', 'formatCurrency'],
+  ['RecurringView', 'recurringApi', 'call', '.recurring · getById'],
+  ['GoalsView', 'goalsApi', 'call', '.goals · getById · updateGoal'],
+  ['GoalsView', 'utils', 'call', 'formatCurrency'],
+  ['WeekCard', 'budgetApi', 'call', 'getTransactionsForWeek · weekStartDay'],
+  ['WeekCard', 'dateUtils', 'call', 'getWeekDateRange · getWeekNumber'],
+  ['WeekCard', 'utils', 'call', 'formatCurrency'],
+  ['TransactionList', 'budgetApi', 'call', 'toggleTransactionStatus · deleteTransaction'],
+  ['TransactionList', 'utils', 'call', 'formatDate · formatCurrency'],
+  ['TransactionList', 'dateUtils', 'call', 'import'],
+  ['RecurringForm', 'recurringApi', 'call', 'getNewRecurring · addRecurring'],
+  ['AddGoalModal', 'goalsApi', 'call', 'addGoal'],
+  ['EditBalanceModal', 'goalsApi', 'call', 'getById · updateGoal'],
+  ['EditBalanceModal', 'utils', 'call', 'formatCurrency'],
+  ['DeleteGoalModal', 'goalsApi', 'call', 'delete'],
+  ['DeleteGoalModal', 'utils', 'call', 'formatCurrency'],
+
+  ['budgetApi', 'syncQueue', 'call', 'enqueue · flush · applyTo'],
+  ['goalsApi', 'syncQueue', 'call', 'enqueue · flush · applyTo'],
+  ['recurringApi', 'syncQueue', 'call', 'enqueue · flush · applyTo'],
+  ['budgetApi', 'dateUtils', 'call', 'getWeekDateRange · createLocalDate'],
+  ['budgetApi', 'localCache', 'call', 'loadTransactions · saveTransactions'],
+  ['goalsApi', 'localCache', 'call', 'loadGoals · saveGoals'],
+  ['recurringApi', 'localCache', 'call', 'loadRecurring · saveRecurring'],
+  ['budgetApi', 'databaseApi', 'call', "getAll('transactions')"],
+  ['goalsApi', 'databaseApi', 'call', "getAll('goals')"],
+  ['recurringApi', 'databaseApi', 'call', "getAll('recurring')"],
+  ['syncQueue', 'databaseApi', 'call', 'upsert · delete'],
+  ['syncQueue', 'localCache', 'call', 'loadQueue · saveQueue'],
+  ['databaseApi', 'supabaseClient', 'call', 'supabase · handleSupabaseError · getCurrentUserId'],
+  ['auth', 'supabaseClient', 'call', 'supabase.auth'],
+
+  ['supabaseClient', 'supabase', 'io', 'HTTPS (anon key + session)'],
+  ['localCache', 'storage', 'io', 'getItem · setItem · removeItem'],
+  ['App', 'storage', 'io', "'darkMode'"],
+
+  ['MonthView', 'TransactionForm', 'signal', 'OPEN_TRANSACTION_FORM'],
+  ['WeekCard', 'TransactionForm', 'signal', 'OPEN_TRANSACTION_FORM'],
+  ['TransactionList', 'TransactionForm', 'signal', 'OPEN_TRANSACTION_FORM'],
+  ['TransactionForm', 'WeekCard', 'signal', 'UPDATE_TRANSACTION'],
+  ['TransactionList', 'WeekCard', 'signal', 'UPDATE_TRANSACTION'],
+  ['budgetApi', 'WeekCard', 'signal', 'UPDATE_TRANSACTION · TRANSACTIONS_FETCH_ALL'],
+  ['SearchOverlay', 'MonthView', 'signal', 'NAVIGATE_TO_DATE'],
+  ['goalsApi', 'GoalsView', 'signal', 'UPDATE_GOALS'],
+];
+
+const board = document.getElementById('board');
+const svg = document.getElementById('edges');
+const NS = 'http://www.w3.org/2000/svg';
+const els = {};
+
+// build columns + cards
+COLS.forEach((title, i) => {
+  const col = document.createElement('div');
+  col.className = 'col' + (i === 0 || i === 8 ? ' narrow' : '');
+  col.innerHTML = `<div class="col-title">${title}</div>`;
+  NODES.filter(n => n.col === i).forEach(n => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.id = n.id;
+    const secs = (n.secs || []).map(([t, items]) =>
+      `<div class="sec${t === 'signals' ? ' signals' : ''}"><div class="sec-t">${t}</div><ul>${items.map(x => `<li>${x}</li>`).join('')}</ul></div>`).join('');
+    card.innerHTML = `<div class="card-h"><span class="tag">${n.tag}</span><div class="name">${n.name}</div><div class="file">${n.file}</div></div>
+      <div class="card-b">${secs}${n.note ? `<div class="note">${n.note}</div>` : ''}</div>`;
+    col.appendChild(card);
+    els[n.id] = card;
+  });
+  board.appendChild(col);
+});
+
+function box(el) {
+  let x = 0, y = 0, e = el;
+  while (e && e !== board) { x += e.offsetLeft; y += e.offsetTop; e = e.offsetParent; }
+  return { x, y, w: el.offsetWidth, h: el.offsetHeight };
+}
+
+let paths = [];
+function draw() {
+  svg.innerHTML = '';
+  svg.setAttribute('width', board.scrollWidth);
+  svg.setAttribute('height', board.scrollHeight);
+  const B = {}; for (const id in els) B[id] = box(els[id]);
+
+  // decide sides, then spread ports along each side ordered by the other end's y
+  const ports = {};
+  const geo = EDGES.map(([f, t, kind, label], i) => {
+    const a = B[f], b = B[t];
+    let fs, ts;
+    if (a.x + a.w < b.x) { fs = 'r'; ts = 'l'; }
+    else if (b.x + b.w < a.x) { fs = 'l'; ts = 'r'; }
+    else { fs = 'r'; ts = 'r'; }
+    (ports[f + fs] ??= []).push({ i, end: 'f', oy: b.y + b.h / 2 });
+    (ports[t + ts] ??= []).push({ i, end: 't', oy: a.y + a.h / 2 });
+    return { f, t, kind, label, fs, ts };
+  });
+  for (const key in ports) {
+    const id = key.slice(0, -1), bx = B[id], list = ports[key].sort((p, q) => p.oy - q.oy);
+    const top = bx.y + 28, span = Math.max(bx.h - 40, 10);
+    list.forEach((p, k) => { geo[p.i][p.end + 'y'] = top + span * (k + 1) / (list.length + 1); });
+  }
+
+  paths = geo.map(g => {
+    const a = B[g.f], b = B[g.t];
+    const x1 = g.fs === 'r' ? a.x + a.w : a.x, x2 = g.ts === 'r' ? b.x + b.w : b.x;
+    const y1 = g.fy, y2 = g.ty;
+    let d;
+    if (g.fs === g.ts) {
+      const bulge = Math.max(x1, x2) + 40;
+      d = `M${x1},${y1} C${bulge},${y1} ${bulge},${y2} ${x2},${y2}`;
+    } else {
+      const dx = Math.max(Math.abs(x2 - x1) * 0.45, 30) * (g.fs === 'r' ? 1 : -1);
+      d = `M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}`;
+    }
+    const p = document.createElementNS(NS, 'path');
+    p.setAttribute('d', d);
+    p.setAttribute('class', `edge ${g.kind}`);
+    svg.appendChild(p);
+    return { ...g, el: p };
+  });
+  applyFocus();
+}
+
+let hover = null, pinned = null;
+function applyFocus() {
+  svg.querySelectorAll('text.elabel').forEach(t => t.remove());
+  const id = pinned || hover;
+  board.classList.toggle('focus', !!id);
+  for (const k in els) els[k].classList.remove('lit', 'sel');
+  paths.forEach(p => p.el.classList.remove('lit'));
+  if (!id) return;
+  els[id].classList.add('sel');
+  paths.forEach(p => {
+    if (p.f !== id && p.t !== id) return;
+    if (board.classList.contains('hide-' + p.kind)) return;
+    p.el.classList.add('lit');
+    els[p.f].classList.add('lit'); els[p.t].classList.add('lit');
+    const len = p.el.getTotalLength(), pt = p.el.getPointAtLength(len * (p.f === id ? 0.62 : 0.38));
+    const t = document.createElementNS(NS, 'text');
+    t.setAttribute('class', `elabel ${p.kind}`);
+    t.setAttribute('x', pt.x); t.setAttribute('y', pt.y - 4);
+    t.setAttribute('text-anchor', 'middle');
+    t.textContent = p.label;
+    svg.appendChild(t);
+  });
+}
+
+board.addEventListener('mouseover', e => {
+  const c = e.target.closest('.card'); const id = c ? c.dataset.id : null;
+  if (id !== hover) { hover = id; if (!pinned) applyFocus(); }
+});
+board.addEventListener('mouseleave', () => { hover = null; if (!pinned) applyFocus(); });
+board.addEventListener('click', e => {
+  const c = e.target.closest('.card');
+  pinned = c && c.dataset.id !== pinned ? c.dataset.id : null;
+  applyFocus();
+});
+
+document.querySelectorAll('#legend input').forEach(inp => {
+  inp.addEventListener('change', () => { board.classList.toggle('hide-' + inp.dataset.kind, !inp.checked); applyFocus(); });
+});
+
+// zoom — anchored at a viewport point (cursor for wheel, center for buttons)
+let scale = 1;
+const sizer = document.getElementById('sizer'), viewport = document.getElementById('viewport');
+function setScale(s, ax = viewport.clientWidth / 2, ay = viewport.clientHeight / 2) {
+  const next = Math.min(2.5, Math.max(0.2, s));
+  const cx = (viewport.scrollLeft + ax) / scale, cy = (viewport.scrollTop + ay) / scale;
+  scale = next;
+  board.style.transform = `scale(${scale})`;
+  sizer.style.width = board.offsetWidth * scale + 'px';
+  sizer.style.height = board.offsetHeight * scale + 'px';
+  viewport.scrollLeft = cx * scale - ax;
+  viewport.scrollTop = cy * scale - ay;
+  document.getElementById('zreset').textContent = Math.round(scale * 100) + '%';
+}
+document.getElementById('zin').onclick = () => setScale(scale * 1.2);
+document.getElementById('zout').onclick = () => setScale(scale / 1.2);
+document.getElementById('zreset').onclick = () => setScale(1);
+document.getElementById('zfit').onclick = () => { setScale((viewport.clientWidth - 4) / board.offsetWidth); viewport.scrollTo(0, 0); };
+
+viewport.addEventListener('wheel', e => {
+  e.preventDefault();
+  const r = viewport.getBoundingClientRect();
+  const delta = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+  setScale(scale * Math.exp(-delta * 0.0015), e.clientX - r.left, e.clientY - r.top);
+}, { passive: false });
+
+// pan — hold Space and drag (middle mouse also works)
+let spaceDown = false, drag = null, dragged = false;
+const typing = el => el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
+window.addEventListener('keydown', e => {
+  if (e.code !== 'Space' || typing(document.activeElement)) return;
+  e.preventDefault();
+  if (!spaceDown) { spaceDown = true; viewport.classList.add('can-pan'); }
+});
+window.addEventListener('keyup', e => {
+  if (e.code !== 'Space') return;
+  spaceDown = false; viewport.classList.remove('can-pan');
+});
+window.addEventListener('blur', () => { spaceDown = false; viewport.classList.remove('can-pan', 'panning'); drag = null; });
+viewport.addEventListener('mousedown', e => {
+  dragged = false;
+  if (!(spaceDown && e.button === 0) && e.button !== 1) return;
+  e.preventDefault();
+  drag = { x: e.clientX, y: e.clientY, sl: viewport.scrollLeft, st: viewport.scrollTop };
+  viewport.classList.add('panning');
+});
+window.addEventListener('mousemove', e => {
+  if (!drag) return;
+  const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+  if (Math.abs(dx) + Math.abs(dy) > 3) dragged = true;
+  viewport.scrollLeft = drag.sl - dx;
+  viewport.scrollTop = drag.st - dy;
+});
+window.addEventListener('mouseup', () => {
+  if (!drag) return;
+  drag = null; viewport.classList.remove('panning');
+});
+// a pan (or any space+click) shouldn't pin/unpin a card
+board.addEventListener('click', e => { if (dragged || spaceDown) { e.stopImmediatePropagation(); dragged = false; } }, true);
+
+function layout() { draw(); setScale(scale); }
+window.addEventListener('resize', layout);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(layout);
+layout();
+</script>
+</body>
+</html>
