@@ -1,5 +1,5 @@
 <script>
-  import { Plus } from "lucide-svelte"
+  import { Plus, Pencil } from "lucide-svelte"
   import { recurringApi } from "/src/api/recurringApi.svelte";
   import RecurringForm from "./RecurringForm.svelte";
   import { formatCurrency } from "/src/api/utils.js";
@@ -44,22 +44,32 @@
       </button>
     </div>
   {:else}
-    <div class="flex flex-col">
+    <div class="grid grid-cols-1 gap-4">
       {#each recurringExpenses as recurringExpense (recurringExpense.id)}
-        <div class="flex justify-between">
-          <div class="flex flex-col">
-            <p>{recurringExpense.name}</p>
-            <p>{recurringExpense.frequencyDays}</p>
+        <article class="flex items-center justify-between gap-3 px-4 py-3 border border-zinc-800 bg-zinc-900 rounded-lg">
+          <div class="flex flex-col gap-0.5 min-w-0">
+            <h2 class="text-md font-semibold text-zinc-100 truncate">{recurringExpense.name}</h2>
+            <span class="text-sm text-zinc-500">
+              Every {recurringExpense.frequencyDays} {recurringExpense.frequencyDays == 1 ? "day" : "days"}
+            </span>
           </div>
-          <div class="flex gap-2">
-            <p>{formatCurrency(recurringExpense.amount)}</p>
-            <button>Edit</button>
+          <div class="flex items-center gap-2 shrink-0">
+            <span class="text-md font-semibold text-zinc-100">{formatCurrency(recurringExpense.amount)}</span>
+            <button
+              class="p-1.5 rounded-md text-zinc-400 hover:text-indigo-400 hover:bg-zinc-800 transition-colors cursor-pointer"
+              aria-label="Edit recurring expense"
+              title="Edit recurring expense"
+              onclick={() => openForm(recurringExpense.id)}
+            >
+              <Pencil size={14} />
+            </button>
           </div>
-        </div>
+        </article>
       {/each}
     </div>
   {/if}
 </div>
 
-
-<RecurringForm bind:open={isFormOpen} bind:currentExpense={currentExpense} />
+{#if isFormOpen}
+  <RecurringForm bind:open={isFormOpen} bind:currentExpense={currentExpense}/>
+{/if}
