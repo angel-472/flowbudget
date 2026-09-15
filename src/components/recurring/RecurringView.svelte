@@ -91,9 +91,17 @@
 
   // Sorts expenses from large to small
   $effect(() => {
-    recurringExpenses.sort((a,b) => b.amount - a.amount)
+    recurringExpenses.sort((a,b) => a.frequencyDays - b.frequencyDays || b.amount - a.amount) //first by frequency then by amount
   })
 
+  let monthlyAverage = $state();
+  $effect(() => {
+    const total = recurringExpenses.reduce((accumulator, currentItem) => {
+      if (currentItem.frequencyDays > 31) return accumulator;
+      return accumulator + currentItem.amount;
+    }, 0);
+    monthlyAverage = total;
+  })
 </script>
 
 <div class="px-4 sm:px-6 py-6">
@@ -104,6 +112,12 @@
       <!-- <Target size={28} class="text-indigo-400" /> -->
       <h1 class="text-2xl font-bold text-zinc-100">Recurring Expenses</h1>
     </div>
+
+    <article class="flex flex-col items-center justify-between px-4 py-3 border border-zinc-800 bg-zinc-900 rounded-xl mb-6">
+      <p class="text-zinc-500 mb-0.5 text-xs">Monthly Average</p>
+      <p class="text-md font-semibold text-red-400">{formatCurrency(monthlyAverage)}</p>
+    </article>
+
     <button
       class="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-medium text-zinc-300 rounded-xl border border-zinc-700 hover:bg-zinc-800 transition-colors cursor-pointer"
       onclick={() => {openForm()}}
