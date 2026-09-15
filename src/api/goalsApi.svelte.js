@@ -65,6 +65,7 @@ class GoalsApi {
     this.#persist();
     console.log(`🌩️ Loaded ${merged.length} cloud goal into Goals API`);
     signal.emit('GOALS_FETCH_ALL', merged);
+    signal.emit("UPDATE_GOALS", {}); //calls the update signal so the view doesn't lose the reference after sync is done
   }
   #queueUpsert(goal) {
     syncQueue.enqueue('goals', 'upsert', goal.id, $state.snapshot(goal));
