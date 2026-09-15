@@ -43,7 +43,7 @@
       recurringApi.addRecurring(currentExpense);
     }
     else {
-
+      recurringApi.update(currentExpense.id);
     }
     close();
   }

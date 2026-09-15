@@ -31,6 +31,23 @@ class RecurringApi {
   getNewRecurring(){
     return {isNew: true, id: crypto.randomUUID(), name: '', amount: 0, frequencyDays: 30, startDate: new Date().toISOString().split('T')[0]};
   }
+  delete(id) {
+    let recurring = this.getById(id);
+    if(!recurring) {
+      console.warn(`Recurring expense with id '${id}' not found for deletion.`);
+      return;
+    }
+    this.recurring = this.recurring.filter(t => t.id !== id);
+    syncQueue.enqueue('recurring', 'delete', id);
+    signal.emit("UPDATE_RECURRING", {});
+    this.#persist();
+  }
+  update(id) {
+    const recurring = this.getById(id);
+    if (recurring) {
+      this.#queueUpsert(recurring);
+    }
+  }
   reset(){
     this.recurring = [];
   }
@@ -53,6 +70,7 @@ class RecurringApi {
     this.#persist();
     console.log(`🌩️ Loaded ${merged.length} cloud ${TABLE_NAME}s into ${TABLE_NAME.toUpperCase()} API`);
     signal.emit(TABLE_NAME.toUpperCase() + '_FETCH_ALL', merged);
+    signal.emit("UPDATE_RECURRING", {}); //calls the update signal so the view doesn't lose the reference after sync is done
   }
   #queueUpsert(expense) {
     syncQueue.enqueue(TABLE_NAME, 'upsert', expense.id, $state.snapshot(expense));
