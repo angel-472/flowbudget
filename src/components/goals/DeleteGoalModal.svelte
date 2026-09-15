@@ -33,7 +33,7 @@
           <AlertTriangle size={20} class="text-red-400" />
         </div>
         <div class="min-w-0">
-          <h3 class="text-base font-bold text-zinc-100">Delete goal</h3>
+          <h3 class="text-base font-bold text-zinc-100">Delete Savings Goal?</h3>
           <p class="mt-1 text-sm text-zinc-400">
             Are you sure you want to delete
             <span class="font-medium text-zinc-200">{goal.name}</span>? This will

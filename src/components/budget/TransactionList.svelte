@@ -1,5 +1,5 @@
 <script>
-  import { Check, Square, Trash2, Pencil } from 'lucide-svelte';
+  import { Check, Square, Trash, Pencil, AlertTriangle } from 'lucide-svelte';
   import { formatDate, formatCurrency } from '/src/api/utils';
   import { dateUtils } from '/src/api/dateUtils';
   import { budgetApi } from '/src/api/budgetApi.svelte.js';
@@ -107,7 +107,7 @@
               onclick={() => handleDeleteTransaction(t.id)}
               title="Delete"
             >
-              <Trash2 size={14} />
+              <Trash size={14} />
             </button>
           </div>
         </div>
@@ -118,22 +118,42 @@
 
 <!-- Delete confirmation -->
 {#if showDeleteModal && transactionToDelete}
-  <div class="fixed inset-0 bg-black/40 dark:bg-black/60 flex items-center justify-center z-50 p-4">
-    <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 max-w-sm w-full">
-      <h3 class="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Delete transaction</h3>
-      <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-5">
-        Delete "<span class="font-medium text-zinc-700 dark:text-zinc-300">{transactionToDelete.description}</span>"? This can't be undone.
-      </p>
-      <div class="flex justify-end gap-2">
+
+  <!-- Backdrop -->
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <div
+    class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+    onclick={(e) => e.target === e.currentTarget && close()}
+    onkeydown={(e) => e.key === 'Escape' && close()}
+  >
+    <!-- Modal -->
+    <div class="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+      <div class="flex items-start gap-3">
+        <div class="shrink-0 p-2 rounded-lg bg-red-500/10">
+          <AlertTriangle size={20} class="text-red-400" />
+        </div>
+        <div class="min-w-0">
+          <h3 class="text-base font-bold text-zinc-100">Delete Transaction?</h3>
+          <p class="mt-1 text-sm text-zinc-400">
+            Are you sure you want to delete
+            <span class="font-medium text-zinc-200">{transactionToDelete.description}</span>? This action can't be
+            undone.
+          </p>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-5">
         <button
+          type="button"
           onclick={closeDeleteModal}
-          class="px-3 py-1.5 text-sm font-medium text-zinc-600 dark:text-zinc-300 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+          class="px-3 py-1.5 text-sm font-medium text-zinc-300 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
         >
           Cancel
         </button>
         <button
+          type="button"
           onclick={confirmDelete}
-          class="px-3 py-1.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors cursor-pointer"
+          class="px-4 py-1.5 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg active:scale-[0.98] transition-all cursor-pointer"
         >
           Delete
         </button>
