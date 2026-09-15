@@ -53,6 +53,58 @@ class DateUtils {
     
     return weeks;
   }
+
+  daysToWords(amountOfDays, includeLeadOne = false){
+    let output = "";
+    if(amountOfDays >= 30){
+      const months = amountOfDays / 30;
+      amountOfDays -= Math.floor(months) * 30;
+      if(months >= 2){
+        output += `${Math.floor(months)} months`;
+      }
+      else {
+        if(includeLeadOne == true){
+          output += "1 ";
+        }
+        output += `month`;
+      }
+      if(amountOfDays > 0){
+        output += " and ";
+      }
+    }
+    if(amountOfDays >= 7){
+      const weeks = amountOfDays / 7;
+      amountOfDays -= Math.floor(weeks) * 7
+      if(weeks >= 2){
+        output += `${Math.floor(weeks)} weeks`;
+      }
+      else {
+        if(output !== "" || includeLeadOne){
+          output += `1 `;
+        }
+        output += `week`;
+      }
+      if(amountOfDays > 0){
+        output += " and ";
+      }      
+    }
+    if(amountOfDays > 0) {
+      if(amountOfDays == 1 && (output !== "" || includeLeadOne)){
+        output += "1 ";
+      }
+      output+= `${amountOfDays > 1 ? amountOfDays + ' ' : ''}day${amountOfDays > 1 ? 's' : ''}`
+    }
+    return output;
+  }
+  daysBetweenDates(firstDate, secondDate){
+    const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
+    const diffDays = Math.round(Math.abs(firstDate - secondDate) / oneDay);
+    return diffDays;
+  }
 }
 
 export const dateUtils = new DateUtils();
+
+if(import.meta.env.DEV && window){
+  window.dateUtilsRef = dateUtils;
+}
