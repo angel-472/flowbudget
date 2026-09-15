@@ -200,7 +200,7 @@
 
           <button
             onclick={() => showSearch = true}
-            class="p-2 rounded-lg text-zinc-500 dark:text-zinc-100 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer flex gap-2 items-center"
+            class="p-2 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer flex gap-2 items-center"
             title="Search (⌘K)"
           >
             <Search size={20} />
@@ -219,19 +219,19 @@
             {/if}
           </button> -->
           
-          <!-- <button
+          <button
             class="p-2 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
             onclick={handleSignOut}
             title="Sign Out"
           >
             <LogOut size={18} />
-          </button> -->
+          </button>
         </div>
       </div>
     </header>
 
     <!-- Content Screen Switcher -->
-    <nav class="max-w-5xl mx-auto px-4 sm:px-6 pt-4">
+    <nav class="max-w-3xl mx-auto px-4 sm:px-6 pt-4">
       <div role="tablist" class="flex gap-1 rounded-2xl bg-zinc-100 dark:bg-zinc-900 p-1">
         {#each views as [id, label] (id)}
           <button
@@ -250,7 +250,7 @@
     </nav>
 
     <!-- Main content -->
-    <main class="max-w-5xl mx-auto pb-32">
+    <main class="max-w-3xl mx-auto pb-32">
       {#if currentView === "month"}
         <MonthView />
       {:else if currentView === "recurring"}
