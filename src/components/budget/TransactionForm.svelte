@@ -3,6 +3,7 @@
   import { signal } from "src/api/signal";
   import { budgetApi } from "src/api/budgetApi.svelte.js";
   import { onMount, onDestroy } from 'svelte';
+  import { recurringApi } from '/src/api/recurringApi.svelte';
 
   const signalSubId = "TransactionFormComponent";
 
@@ -55,7 +56,19 @@
       if (existingTransaction) Object.assign(existingTransaction, transaction);
       budgetApi.updateTransaction(id);
       signal.emit("UPDATE_TRANSACTION", { transaction: existingTransaction });
-    } else {
+    } 
+    else {
+
+      if(transaction.id.startsWith("_recurring_")){
+        const expenseId = transaction.id.substring("_recurring_".length)
+        const recurringExpense = recurringApi.getById(expenseId);
+        recurringExpense.excludedDates.push(transaction.date);
+        recurringApi.update(expenseId);
+
+        transaction.id = crypto.randomUUID();
+        transaction.category = "Recurring Expenses";
+      }
+
       budgetApi.addTransaction(transaction);
       signal.emit("UPDATE_TRANSACTION", { transaction });
     }

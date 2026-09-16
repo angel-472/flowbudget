@@ -103,7 +103,7 @@
           bind:value={frequencyDays}
           placeholder="0.00"
           step="1"
-          min="1"
+          min="7"
           class="px-3 py-2 text-sm border border-zinc-700 rounded-lg bg-zinc-900 text-zinc-100 placeholder-zinc-500 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
         />
       </label>
@@ -120,7 +120,7 @@
           type="submit"
           class="px-4 py-1.5 text-sm font-medium text-white bg-indigo-500 hover:bg-indigo-600 rounded-lg active:scale-[0.98] transition-all cursor-pointer"
         >
-          {currentExpense.isNew ? "Add" : "Edit"} Expense
+          {currentExpense.isNew ? "Add" : "Save"}
         </button>
       </div>
     </form>

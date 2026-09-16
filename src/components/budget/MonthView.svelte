@@ -38,6 +38,8 @@
       return transactionDate.getMonth() === currentMonth && 
              transactionDate.getFullYear() === currentYear;
     });
+
+    //TODO: TO COUNT RECURRING TOWARDS TOTAL EXPENSES: FOR EACH WEEK IN MONTH GET ALL OCURRENCES, FILTER EXCLUDED DATES, PUSH INTO MONTHTRANSACTIONS ARRAY
     
     let totalIncome = monthTransactions
       .filter(t => t.type === 'incomes')
@@ -79,7 +81,7 @@
     if (!hasScrolledToCurrentWeek) {
       hasScrolledToCurrentWeek = true;
       let weekNumber = dateUtils.getWeekNumber(dateUtils.createLocalDate(new Date().toISOString().split('T')[0]), budgetApi.weekStartDay);
-      setTimeout(() => scrollTo(`week-view-${weekNumber}`, 80, false), 10);
+      setTimeout(() => scrollTo(`week-view-${weekNumber}`, 80, false), 50);
       
     }
 

@@ -4,6 +4,7 @@
   import { dateUtils } from '/src/api/dateUtils';
   import { budgetApi } from '/src/api/budgetApi.svelte.js';
   import { signal } from '/src/api/signal.js';
+  import { recurringApi } from '/src/api/recurringApi.svelte';
   
   let { type, transactions } = $props();
   let isIncome = $derived(type === 'incomes');
@@ -17,7 +18,24 @@
         ? { ...t, status: t.status === 'done' ? 'pending' : 'done' }
         : t
     );
-    budgetApi.toggleTransactionStatus(id);
+    if(id.startsWith("_recurring_")){
+      // Give valid id and replace
+      const mockTransaction = transactions.find((t) => t.id === id);
+
+      const expenseId = id.substring("_recurring_".length)
+      const recurringExpense = recurringApi.getById(expenseId);
+      recurringExpense.excludedDates.push(mockTransaction.date);
+      recurringApi.update(expenseId);
+
+      mockTransaction.id = crypto.randomUUID();
+      mockTransaction.category = "Recurring Expenses";
+      budgetApi.addTransaction(mockTransaction);
+
+      signal.emit("UPDATE_TRANSACTION", { transaction: mockTransaction });
+    }
+    else {
+      budgetApi.toggleTransactionStatus(id);
+    }
   }
   
   function handleEditTransaction(id) {
@@ -35,9 +53,21 @@
 
   function confirmDelete() {
     if (transactionToDelete) {
-      budgetApi.deleteTransaction(transactionToDelete.id);
+
+      if(transactionToDelete.id.startsWith("_recurring_")){
+        // Handle marking the date in the recurringExpense so new mocks don't get generated (since it was deleted) 
+        console.log("deleting a mock transaction of recurring expense")
+        const expenseId = transactionToDelete.id.substring("_recurring_".length)
+        const recurringExpense = recurringApi.getById(expenseId);
+        recurringExpense.excludedDates.push(transactionToDelete.date);
+        recurringApi.update(expenseId);
+      }
+      else {
+        budgetApi.deleteTransaction(transactionToDelete.id);
+      }
       transactions = transactions.filter(t => t.id !== transactionToDelete.id);
       signal.emit("UPDATE_TRANSACTION", { transaction: transactionToDelete });
+
     }
     closeDeleteModal();
   }
@@ -64,6 +94,7 @@
     </div>
     <div class="flex flex-col overflow-y-auto">
       {#each transactions.toSorted((a, b) => new Date(a.date) - new Date(b.date)) as t (t.id)}
+        {@const isRecurring = (t.id.startsWith("_recurring_"))}
         <div class="group flex items-center gap-3 py-2 px-1 border-b border-zinc-100 dark:border-zinc-800 last:border-0 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded transition-colors">
           <!-- Status toggle -->
           <button
@@ -83,9 +114,15 @@
             <p class="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
               {t.description}
             </p>
-            <p class="text-xs text-zinc-400 dark:text-zinc-500">
-              {t.category || 'Uncategorized'} · {dateUtils.createLocalDate(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-            </p>
+            {#if !isRecurring}
+              <p class="text-xs text-zinc-400 dark:text-zinc-500">
+                {t.category || 'Uncategorized'} · {dateUtils.createLocalDate(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              </p>
+            {:else}
+              <p class="text-xs text-zinc-400 dark:text-zinc-500">
+                <span class="text-red-400 underline decoration-dashed underline-offset-1">Recurring Expense</span> · {dateUtils.createLocalDate(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              </p>            
+            {/if}
           </div>
           
           <!-- Amount -->

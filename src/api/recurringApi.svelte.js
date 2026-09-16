@@ -2,6 +2,8 @@ import { localCache } from "./localCache.js";
 import { databaseApi } from "./cloud/databaseApi.js";
 import { syncQueue } from "./cloud/syncQueue.js";
 import { signal } from "./signal.js";
+import { dateUtils } from "./dateUtils.js";
+import { budgetApi } from "./budgetApi.svelte.js";
 
 
 const TABLE_NAME = "recurring";
@@ -20,7 +22,8 @@ class RecurringApi {
       name: data.name,
       amount: parseFloat(data.amount) || 0,
       frequencyDays: parseInt(data.frequencyDays) || 30,
-      startDate: data.startDate
+      startDate: data.startDate,
+      excludedDates: [],
     }
     this.recurring.push(newRecurring);
     this.#queueUpsert(newRecurring);
@@ -29,7 +32,34 @@ class RecurringApi {
     return this.recurring.find(t => t.id === id);
   }
   getNewRecurring(){
-    return {isNew: true, id: crypto.randomUUID(), name: '', amount: 0, frequencyDays: 30, startDate: new Date().toISOString().split('T')[0]};
+    return {isNew: true, id: crypto.randomUUID(), name: '', amount: 0, frequencyDays: 30, startDate: new Date().toISOString().split('T')[0], excludedDates: []};
+  }
+  findExpensesInWeek(year, weekNumber){
+    const dateRange = dateUtils.getWeekDateRange(year, weekNumber, budgetApi.weekStartDay);
+    const results = [];
+
+    for(const expense of this.recurring){
+      const startDate = dateUtils.createLocalDate(expense.startDate);
+
+      if(startDate > dateRange[6]){
+        continue; //skip, it starts after the week in question
+      }
+
+      const daysBetweenCeil = dateUtils.daysBetweenDates(startDate, dateRange[6]); //amount of days between last day of the week and the start of recurring expense
+      const daysSinceLastOcurrence = daysBetweenCeil % expense.frequencyDays;
+
+      if(daysSinceLastOcurrence > 6){
+        continue; //it's out of range, too many days ago (max = 6 days before last day of week)
+      }
+
+      const lastOcurrenceDate = new Date(dateRange[6]);
+      lastOcurrenceDate.setDate(lastOcurrenceDate.getDate() - daysSinceLastOcurrence);
+
+      // console.log({lastOcurrenceDate, daysSinceLastOcurrence, daysBetweenCeil, dateRange, expense})
+      results.push({expense, date: lastOcurrenceDate});
+    }
+
+    return results;
   }
   delete(id) {
     let recurring = this.getById(id);

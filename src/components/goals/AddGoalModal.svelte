@@ -19,7 +19,6 @@
     e.preventDefault();
     onsubmit?.({ name, target, balance }); //fires the onsubmit parent function parameter (if added)
     
-    // TODO: wire up goal creation
     goalsApi.addGoal({name, target, balance});
     close();
   }

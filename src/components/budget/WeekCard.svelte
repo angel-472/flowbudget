@@ -6,6 +6,7 @@
   import { signal } from '/src/api/signal.js';
   import { onDestroy, onMount } from 'svelte';
   import TransactionList from './TransactionList.svelte'
+  import { recurringApi } from '../../api/recurringApi.svelte';
 
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
@@ -37,11 +38,33 @@
   function updateTransactionData() {
     incomes = budgetApi.getTransactionsForWeek(currentYear, weekNumber, 'incomes');
     expenses = budgetApi.getTransactionsForWeek(currentYear, weekNumber, 'expenses');
+    
+    // Inject Recurring Expenses
+    const recurringExpenses = recurringApi.findExpensesInWeek(currentYear, weekNumber);
+
+    for(const ocurrence of recurringExpenses){
+      if(ocurrence.expense.excludedDates?.includes(ocurrence.date.toISOString().split('T')[0])){
+        continue; //ocurrence for the date is excluded
+      }
+      const mockTransaction = {
+        id: `_recurring_${ocurrence.expense.id}`,
+        type: 'expenses',
+        date: ocurrence.date.toISOString().split('T')[0],
+        description: ocurrence.expense.name,
+        amount: ocurrence.expense.amount,
+        category: '',
+        status: 'pending'
+      }
+      expenses.push(mockTransaction);
+    }
+
     weeklyNet = incomes.reduce((sum, t) => sum + t.amount, 0) - expenses.reduce((sum, t) => sum + t.amount, 0);
   }
 
   let signalSubId = `W${weekNumber}_${currentMonth}_${currentYear}`;
   onMount(() => {
+    updateTransactionData();
+
     signal.sub("TRANSACTIONS_FETCH_ALL", signalSubId, (data) => {
       updateTransactionData();
     });
