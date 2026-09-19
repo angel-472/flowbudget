@@ -96,8 +96,8 @@
       signal.emit("UPDATE_TRANSACTION", { transaction: existingTransaction });
     } 
     else {
-
-      if(transaction.id.startsWith("_recurring_")){
+      console.log(transaction.id)
+      if(transaction.id && transaction.id.startsWith("_recurring_")){
         const expenseId = transaction.id.substring("_recurring_".length)
         const recurringExpense = recurringApi.getById(expenseId);
         recurringExpense.excludedDates.push(currentTransaction.date); //excludes the date of the mock transaction, not the one from the form (could be edited by user)
