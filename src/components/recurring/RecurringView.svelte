@@ -98,8 +98,8 @@
   $effect(() => {
     const total = recurringExpenses.reduce((accumulator, currentItem) => {
       if (currentItem.frequencyDays > 31) return accumulator; // stays the same because it's not inside a month
-      const times = Math.round(31 / currentItem.frequencyDays);
-      return accumulator + (currentItem.amount * times);
+      const repetitions = Math.round(31 / currentItem.frequencyDays);
+      return accumulator + (currentItem.amount * repetitions);
     }, 0);
     monthlyAverage = total;
   })
