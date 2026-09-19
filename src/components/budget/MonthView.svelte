@@ -12,6 +12,7 @@
   import { signal } from '/src/api/signal.js';
   import WeekCard from './WeekCard.svelte';
   import { onMount, tick } from 'svelte';
+  import { recurringApi } from '/src/api/recurringApi.svelte';
   
   let currentMonth = $state(new Date().getMonth());
   let currentYear = $state(new Date().getFullYear());
@@ -47,6 +48,18 @@
     let totalExpenses = monthTransactions
       .filter(t => t.type === 'expenses')
       .reduce((sum, t) => sum + t.amount, 0);
+
+    // Add Recurring Expenses
+    let totalFromRecurring = 0;
+    for(const weekNumber of weeksInMonth){
+      const recurringExpenses = recurringApi.findExpensesInWeek(currentYear, weekNumber);
+      for(const ocurrence of recurringExpenses){
+        if(ocurrence.date.getMonth() !== currentMonth) continue;
+        totalFromRecurring += ocurrence.expense.amount;
+      }
+    }
+
+    totalExpenses += totalFromRecurring;
       
     return {
       income: totalIncome,
