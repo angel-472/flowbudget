@@ -1,5 +1,5 @@
 <script>
-  import { Moon, Sun, LogOut, ArrowUp, Search } from "lucide-svelte"
+  import { ArrowUp, Search } from "lucide-svelte"
   import { onMount } from "svelte";
   import { fly } from "svelte/transition";
   import MonthView from "./components/budget/MonthView.svelte";
@@ -14,6 +14,12 @@
     import { goalsApi } from "./api/goalsApi.svelte";
     import RecurringView from "./components/recurring/RecurringView.svelte";
     import { recurringApi } from "./api/recurringApi.svelte";
+    import { router } from "./api/router.svelte.js";
+    import NavBar from "./components/ui/NavBar.svelte";
+    import OverflowMenu from "./components/ui/OverflowMenu.svelte";
+    import PreferencesModal from "./components/ui/PreferencesModal.svelte";
+
+  router.start();
 
   // ── Dark mode ──
   let darkMode = $state(false);
@@ -41,13 +47,6 @@
   let user = $state(cachedSession);
   let isLoading = $state(cachedSession === null);
   let isSyncing = $state(cachedSession !== null);
-  let currentView = $state("month");
-
-  const views = [
-    ["month", "Month"],
-    ["recurring", "Recurring"],
-    ["goals", "Goals"],
-  ];
 
   let connecting = null;
   let reconnectTimer = null;
@@ -156,12 +155,16 @@
 
   // ── Search ──
   let showSearch = $state(false);
+
+  // ── Preferences ──
+  let showPreferences = $state(false);
 </script>
 
 <svelte:window onkeydown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); showSearch = true; } }} />
 
-{#if showSearch && user}
-  <SearchOverlay onClose={() => showSearch = false} />
+{#if user}
+  <SearchOverlay bind:open={showSearch} />
+  <PreferencesModal bind:open={showPreferences} {darkMode} onToggleDarkMode={toggleDarkMode} />
 {/if}
 
 {#if isLoading}
@@ -191,11 +194,15 @@
     <header class="sticky top-0 z-20 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-sm border-b border-zinc-200 dark:border-zinc-800">
       <div class="flex items-center justify-between h-14 max-w-3xl mx-auto px-4 sm:px-6">
 
-        <!-- refresh (for going back in PWA) -->
-        <button onclick={() => location.reload()}> 
+        <!-- Home: back to the current month -->
+        <button
+          onclick={() => router.goToToday()}
+          class="rounded-lg px-1 cursor-pointer"
+          title="Go to current month"
+        >
           <h1 class="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100">FlowBudget</h1>
         </button>
-        
+
         <div class="flex items-center gap-1">
 
           <button
@@ -206,65 +213,39 @@
             <Search size={20} />
           </button>
 
-          <!-- TODO: Add these options back in a preferences section -->
-          <!-- <button
-            onclick={toggleDarkMode}
-            class="p-2 rounded-lg text-zinc-400 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
-            title="Toggle theme"
-          >
-            {#if darkMode}
-              <Sun size={18} />
-            {:else}
-              <Moon size={18} />
-            {/if}
-          </button> -->
-          
-          <button
-            class="p-2 rounded-lg text-zinc-400 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
-            onclick={handleSignOut}
-            title="Sign Out"
-          >
-            <LogOut size={18} />
-          </button>
+          <OverflowMenu
+            onSignOut={handleSignOut}
+            onPreferences={() => showPreferences = true}
+          />
         </div>
       </div>
     </header>
 
-    <!-- Content Screen Switcher -->
-    <nav class="max-w-3xl mx-auto px-4 sm:px-6 pt-4">
-      <div role="tablist" class="flex gap-1 rounded-2xl bg-zinc-100 dark:bg-zinc-900 p-1">
-        {#each views as [id, label] (id)}
-          <button
-            role="tab"
-            aria-selected={currentView === id}
-            onclick={() => currentView = id}
-            class="flex-1 rounded-xl py-2.5 text-sm font-medium border transition-colors cursor-pointer
-              {currentView === id
-                ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border-zinc-200 dark:border-zinc-700'
-                : 'text-zinc-400 dark:text-zinc-400 border-transparent hover:text-zinc-600 dark:hover:text-zinc-300'}"
-          >
-            {label}
-          </button>
-        {/each}
-      </div>
-    </nav>
+    <!-- Content Screen Switcher — top segmented on desktop, bottom bar on mobile -->
+    <NavBar />
 
     <!-- Main content -->
-    <main class="max-w-3xl mx-auto pb-32">
-      {#if currentView === "month"}
-        <MonthView />
-      {:else if currentView === "recurring"}
-        <RecurringView />
-      {:else if currentView === "goals"}
-        <GoalsView />
-      {/if}
+    <!-- Bottom padding clears the mobile nav bar, the add FAB and the home indicator -->
+    <main class="max-w-3xl mx-auto pb-[calc(7rem+env(safe-area-inset-bottom))] sm:pb-32">
+      <div id="view-panel" role="tabpanel" aria-label={router.view} tabindex="-1" class="outline-none">
+        {#if router.view === "month"}
+          <MonthView />
+        {:else if router.view === "recurring"}
+          <RecurringView />
+        {:else if router.view === "goals"}
+          <GoalsView />
+        {/if}
+      </div>
     </main>
-    
-    <!-- Scroll to top — sits above MonthView's add button on desktop -->
+
+    <!-- Scroll to top — above the nav pill on mobile, above the add button on desktop -->
     {#if showScrollButton}
       <button
         onclick={scrollToTop}
-        class="fixed bottom-6 right-4 sm:bottom-20 sm:right-6 z-30 p-3 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-lg hover:bg-zinc-700 dark:hover:bg-zinc-200 active:scale-95 transition-all cursor-pointer"
+        class="fixed right-4 bottom-[calc(env(safe-area-inset-bottom)+5rem)] sm:bottom-20 sm:right-6 z-30 p-2.5 sm:p-3 rounded-full
+          bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 shadow-md
+          sm:bg-zinc-900 sm:dark:bg-white sm:text-white sm:dark:text-zinc-900 sm:border-transparent sm:shadow-lg sm:hover:bg-zinc-700 sm:dark:hover:bg-zinc-200
+          active:scale-95 transition-all cursor-pointer"
         title="Scroll to top"
         aria-label="Scroll to top"
         transition:fly={{ y: 8, duration: 150 }}

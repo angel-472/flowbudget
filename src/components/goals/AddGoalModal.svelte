@@ -1,5 +1,6 @@
 <script>
   import { goalsApi } from "src/api/goalsApi.svelte";
+  import Modal from "/src/components/ui/Modal.svelte";
 
   let { open = $bindable(false), onsubmit } = $props();
 
@@ -10,6 +11,10 @@
 
   function close() {
     open = false;
+  }
+
+  // Clear once the sheet is gone, not while it's still sliding away.
+  function reset() {
     name = '';
     target = '';
     balance = '';
@@ -24,18 +29,7 @@
   }
 </script>
 
-{#if open}
-  <!-- Backdrop -->
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <div
-    class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
-    onkeydown={(e) => e.key === 'Escape' && close()}
-    onclick={(e) => e.target === e.currentTarget && close()}
-  >
-    <!-- Modal -->
-    <div class="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-      <h3 class="text-base font-bold text-zinc-100 mb-4">New Saving Goal</h3>
-
+<Modal bind:open name="add-goal" title="New Saving Goal" onClosed={reset}>
       <form onsubmit={handleSubmit} class="space-y-3">
         <label class="flex flex-col gap-1">
           <span class="text-xs font-medium text-zinc-400">Goal name</span>
@@ -90,7 +84,5 @@
             Add Goal
           </button>
         </div>
-      </form>
-    </div>
-  </div>
-{/if}
+  </form>
+</Modal>

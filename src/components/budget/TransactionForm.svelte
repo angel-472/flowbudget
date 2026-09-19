@@ -1,9 +1,39 @@
+<script module>
+  import { signal as moduleSignal } from "src/api/signal";
+  import { router as moduleRouter } from "/src/api/router.svelte.js";
+
+  /**
+   * Opens the form for a new transaction. On the month view it defaults to the
+   * month on screen (today if that's the current month, else the 1st), so the
+   * transaction lands where the user is looking; elsewhere it's today.
+   */
+  export function openNewTransaction() {
+    const today = new Date();
+    const viewingOtherMonth = moduleRouter.view === 'month'
+      && (moduleRouter.month !== today.getMonth() || moduleRouter.year !== today.getFullYear());
+    const date = viewingOtherMonth ? new Date(moduleRouter.year, moduleRouter.month, 1) : today;
+
+    moduleSignal.emit("OPEN_TRANSACTION_FORM", {
+      transaction: {
+        id: null,
+        type: 'expenses',
+        date: date.toLocaleDateString('en-CA'),
+        description: '',
+        amount: '',
+        category: '',
+        status: 'pending'
+      }
+    });
+  }
+</script>
+
 <script>
   import { dateUtils } from 'src/api/dateUtils';
   import { signal } from "src/api/signal";
   import { budgetApi } from "src/api/budgetApi.svelte.js";
   import { onMount, onDestroy } from 'svelte';
   import { recurringApi } from '/src/api/recurringApi.svelte';
+  import Modal from '/src/components/ui/Modal.svelte';
 
   const signalSubId = "TransactionFormComponent";
 
@@ -43,13 +73,16 @@
     signal.unsubAll(signalSubId);
   });
   
-  function handleClose() {
-    isOpen = false;
+  function resetFields() {
     type = 'expenses';
     date = '';
     description = '';
     amount = '';
     category = '';
+  }
+
+  function handleClose() {
+    isOpen = false;
   }
 
   async function handleSubmit(e) {
@@ -81,20 +114,12 @@
   }
 </script>
 
-{#if isOpen}
-  <!-- Backdrop -->
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <div
-    class="fixed inset-0 bg-black/40 dark:bg-black/60 flex items-center justify-center z-50 p-4"
-    onkeydown={(e) => e.key === 'Escape' && handleClose()}
-    onclick={(e) => e.target === e.currentTarget && handleClose()}
-  >
-    <!-- Modal -->
-    <div class="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5">
-      <h3 class="text-base font-bold text-zinc-900 dark:text-zinc-100 mb-4">
-        {isNewTransaction ? 'New' : 'Edit'} Transaction
-      </h3>
-      
+<Modal
+  bind:open={isOpen}
+  name="transaction-form"
+  title="{isNewTransaction ? 'New' : 'Edit'} Transaction"
+  onClosed={resetFields}
+>
       <form onsubmit={handleSubmit} class="space-y-3">
         <div class="grid grid-cols-2 gap-3">
           <label class="flex flex-col gap-1">
@@ -173,7 +198,5 @@
             {isNewTransaction ? 'Add' : 'Save'}
           </button>
         </div>
-      </form>
-    </div>
-  </div>
-{/if}
+  </form>
+</Modal>

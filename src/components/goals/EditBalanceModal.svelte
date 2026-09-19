@@ -1,6 +1,7 @@
 <script>
     import { goalsApi } from "../../api/goalsApi.svelte";
   import { formatCurrency } from "/src/api/utils.js";
+  import Modal from "/src/components/ui/Modal.svelte";
 
   let { open = $bindable(false), goal, onsubmit, onclose } = $props();
 
@@ -9,9 +10,12 @@
   let balance = $state(0);
   let target = $state(0);
 
-  // seed the inputs whenever a goal is loaded into the modal
+  // seed the inputs whenever a goal is loaded into the modal. The parent
+  // clears `goal` on close, so remember its id for the whole open/close cycle.
+  let goalId = null;
   $effect(() => {
     if (goal) {
+      goalId = goal.id;
       name = goal.name;
       balance = parseFloat(goal.balance);
       target = parseFloat(goal.target);
@@ -24,35 +28,30 @@
 
   function close() {
     open = false;
+    if(onclose) onclose();
+  }
+
+  // Reset only once the sheet is gone, so it doesn't read $0 on its way out.
+  function reset() {
     name = "";
     balance = 0;
     target = 0;
-    if(onclose) onclose();
+    goalId = null;
   }
 
   function handleSubmit(e) {
     e.preventDefault();
-    let goalInstance = goalsApi.getById(goal.id);
+    let goalInstance = goalsApi.getById(goalId);
     goalInstance.name = name;
     goalInstance.balance = balance;
     goalInstance.target = target;
-    goalsApi.updateGoal(goal.id);
+    goalsApi.updateGoal(goalId);
     onsubmit?.({ name, balance, target });
     close();
   }
 </script>
 
-{#if open && goal}
-  <!-- Backdrop -->
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <div
-    class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
-    onkeydown={(e) => e.key === 'Escape' && close()}
-  >
-    <!-- Modal -->
-    <div class="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-      <h3 class="text-base font-bold text-zinc-100 mb-4">Adjust Balance</h3>
-
+<Modal bind:open name="edit-balance" title="Adjust Balance" onClose={close} onClosed={reset}>
       <form onsubmit={handleSubmit} class="space-y-4">
         <!-- Current value readout -->
         <div class="flex items-baseline gap-2">
@@ -110,7 +109,5 @@
             Save
           </button>
         </div>
-      </form>
-    </div>
-  </div>
-{/if}
+    </form>
+</Modal>

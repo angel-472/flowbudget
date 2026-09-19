@@ -200,10 +200,6 @@
   {/if}
 </div>
 
-{#if isFormOpen}
-  <RecurringForm bind:open={isFormOpen} bind:currentExpense={currentExpense}/>
-{/if}
-
-{#if isDeleteOpen}
-  <DeleteRecurringModal bind:open={isDeleteOpen} bind:name={deleteTarget.name} onconfirm={confirmDelete}/>
-{/if}
+<!-- Always mounted so their open/close animations play -->
+<RecurringForm bind:open={isFormOpen} bind:currentExpense={currentExpense}/>
+<DeleteRecurringModal bind:open={isDeleteOpen} name={deleteTarget.name} onconfirm={confirmDelete}/>

@@ -9,25 +9,33 @@
   import { budgetApi } from '/src/api/budgetApi.svelte.js';
   import { dateUtils } from '/src/api/dateUtils.js';
   import { formatCurrency } from '/src/api/utils.js';
-  import { signal } from '/src/api/signal.js';
   import WeekCard from './WeekCard.svelte';
   import { onMount, tick } from 'svelte';
   import { recurringApi } from '/src/api/recurringApi.svelte';
-  
-  let currentMonth = $state(new Date().getMonth());
-  let currentYear = $state(new Date().getFullYear());
+  import { router } from '/src/api/router.svelte.js';
+  import MonthPicker from './MonthPicker.svelte';
+  import { openNewTransaction } from './TransactionForm.svelte';
+
+  // The selected month lives in the URL, so it survives tab switches and
+  // reloads and can be linked to.
+  let currentMonth = $derived(router.month);
+  let currentYear = $derived(router.year);
+
+  let isPickerOpen = $state(false);
   
   let monthName = $derived(new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long' }));
   let isCurrentMonth = $derived(currentMonth === new Date().getMonth() && currentYear === new Date().getFullYear());
   
-  function selectPrevMonth() {  
-    if (currentMonth === 0) { currentMonth = 11; currentYear--; }
-    else currentMonth--;
+  function selectPrevMonth() {
+    const month = currentMonth === 0 ? 11 : currentMonth - 1;
+    const year = currentMonth === 0 ? currentYear - 1 : currentYear;
+    router.go('month', { month, year, replace: true });
   }
-  
+
   function selectNextMonth() {
-    if (currentMonth === 11) { currentMonth = 0; currentYear++; }
-    else currentMonth++;
+    const month = currentMonth === 11 ? 0 : currentMonth + 1;
+    const year = currentMonth === 11 ? currentYear + 1 : currentYear;
+    router.go('month', { month, year, replace: true });
   }
 
   let weeksInMonth = $derived(dateUtils.getWeeksInMonth(currentYear, currentMonth + 1, budgetApi.weekStartDay));
@@ -69,44 +77,37 @@
     };
   });
 
-  function handleAddTransaction() {
-    signal.emit("OPEN_TRANSACTION_FORM", {
-      transaction: {
-        id: null,
-        type: 'expenses',
-        date: new Date().toLocaleDateString('en-CA'),
-        description: '',
-        amount: '',
-        category: '',
-        status: 'pending'
-      }
-    });
-  }
-
   function scrollTo(id, offset = 100, smooth = true) {
     const element = document.getElementById(id);
+    if (!element) return;
     var elementPosition = element.getBoundingClientRect().top;
     var offsetPosition = elementPosition + window.pageYOffset - offset;
     window.scrollTo({ top: offsetPosition, behavior: smooth ? "smooth" : "auto" });
   }
 
+  async function scrollToDate(dateStr, smooth) {
+    const target = dateUtils.createLocalDate(dateStr);
+    await tick();
+    scrollTo(`week-view-${dateUtils.getWeekNumber(target, budgetApi.weekStartDay)}`, 80, smooth);
+  }
+
+  // A route carrying ?d=YYYY-MM-DD (a search result, say) asks us to scroll to
+  // that week. This runs whenever the route changes, so it works no matter
+  // which tab the navigation came from.
+  $effect(() => {
+    if (!router.pendingDate) return;
+    scrollToDate(router.consumePendingDate(), true);
+  });
+
   onMount(() => {
     if (!hasScrolledToCurrentWeek) {
       hasScrolledToCurrentWeek = true;
-      let weekNumber = dateUtils.getWeekNumber(dateUtils.createLocalDate(new Date().toISOString().split('T')[0]), budgetApi.weekStartDay);
-      setTimeout(() => scrollTo(`week-view-${weekNumber}`, 80, false), 50);
-      
+      // Don't fight a pending deep link for control of the scroll position.
+      if (!router.pendingDate) {
+        const today = new Date().toLocaleDateString('en-CA');
+        setTimeout(() => scrollToDate(today, false), 50);
+      }
     }
-
-    signal.sub('NAVIGATE_TO_DATE', 'month-view', async ({ date }) => {
-      const target = dateUtils.createLocalDate(date);
-      currentMonth = target.getMonth();
-      currentYear = target.getFullYear();
-      await tick();
-      scrollTo(`week-view-${dateUtils.getWeekNumber(target)}`, 80, true);
-    });
-
-    return () => signal.unsub('NAVIGATE_TO_DATE', 'month-view');
   });
 </script>
 
@@ -120,14 +121,19 @@
     >
       <ChevronLeft size={20} />
     </button>
-    <div class="text-center">
+    <button
+      type="button"
+      class="text-center rounded-lg px-3 py-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+      onclick={() => isPickerOpen = true}
+      title="Jump to month"
+    >
       <h2 class="text-2xl font-bold tracking-tight {isCurrentMonth ? 'text-indigo-600 dark:text-indigo-400' : 'text-zinc-900 dark:text-zinc-100'}">
         {monthName} {currentYear}
       </h2>
       <p class="text-xs text-zinc-400 dark:text-zinc-400 mt-0.5">
         {monthlySummary.transactionCount} transaction{monthlySummary.transactionCount !== 1 ? 's' : ''}
       </p>
-    </div>
+    </button>
     <button
       onclick={selectNextMonth}
       class="p-2 rounded-lg text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
@@ -157,18 +163,23 @@
   
   <!-- Week cards -->
   <div class="flex flex-col gap-4">
-    {#each weeksInMonth as weekNumber (weekNumber)}
+    <!-- Keyed by month and year too: week numbers repeat every year, and
+         WeekCard reads its props once, so a reused card would keep showing
+         the previous month's data. -->
+    {#each weeksInMonth as weekNumber (`${currentYear}-${currentMonth}-${weekNumber}`)}
       <WeekCard {weekNumber} {currentMonth} {currentYear}/>
     {/each}
   </div>
 </div>
 
-<!-- Add transaction -->
+<!-- Add transaction (desktop; on mobile it lives in the nav bar) -->
 <button
-  class="fixed bottom-6 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-6 z-30 flex items-center justify-center px-10 py-3 sm:p-3 rounded-full bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white shadow-md active:scale-95 transition-all cursor-pointer"
+  class="hidden sm:flex fixed bottom-6 right-6 z-30 items-center justify-center p-3 rounded-full bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white shadow-md active:scale-95 transition-all cursor-pointer"
   title="Add Transaction"
   aria-label="Add Transaction"
-  onclick={handleAddTransaction}
+  onclick={openNewTransaction}
 >
   <Plus size={20} />
 </button>
+
+<MonthPicker bind:open={isPickerOpen} month={currentMonth} year={currentYear} />

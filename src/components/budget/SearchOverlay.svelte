@@ -1,16 +1,15 @@
 <script>
-  import { onMount } from 'svelte';
   import { Search, X, TrendingUp, TrendingDown } from 'lucide-svelte';
   import Fuse from 'fuse.js';
   import { budgetApi } from '/src/api/budgetApi.svelte.js';
-  import { signal } from '/src/api/signal.js';
   import { formatCurrency } from '/src/api/utils.js';
   import { dateUtils } from '/src/api/dateUtils.js';
+  import { router } from '/src/api/router.svelte.js';
+  import Modal from '/src/components/ui/Modal.svelte';
 
-  let { onClose } = $props();
+  let { open = $bindable(true), onClose } = $props();
 
   let query = $state('');
-  let inputEl;
 
   let searchList = $derived(
     budgetApi.transactions.map(t => ({ ...t, amountStr: String(t.amount) }))
@@ -38,15 +37,12 @@
           .slice(0, 30)
   );
 
-  onMount(() => inputEl?.focus());
-
-  function handleKeydown(e) {
-    if (e.key === 'Escape') onClose();
-  }
-
+  // Navigating through the router switches tab *and* month, so a result is
+  // reachable from any view — previously this only worked from the month tab.
   function handleSelect(t) {
-    signal.emit('NAVIGATE_TO_DATE', { date: t.date });
-    onClose();
+    // The router closes this overlay as part of navigating, reusing its
+    // history entry for the destination.
+    router.goToDate(t.date);
   }
 
   function formatDate(dateStr) {
@@ -56,32 +52,17 @@
   }
 </script>
 
-<svelte:window onkeydown={handleKeydown} />
-
-<div
-  class="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 flex items-start justify-center pt-16 px-4"
-  role="presentation"
-  onclick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-  onkeydown={(e) => { if (e.key === 'Escape') onClose(); }}
->
-  <div
-    class="w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden"
-    role="dialog"
-    aria-modal="true"
-    aria-label="Search transactions"
-    tabindex="-1"
-  >
+<Modal bind:open name="search" size="palette" {onClose} onClosed={() => query = ''}>
     <!-- Input row -->
     <div class="flex items-center gap-3 px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
       <Search size={18} class="shrink-0 text-zinc-400 dark:text-zinc-400" />
       <input
-        bind:this={inputEl}
         bind:value={query}
         placeholder="Search transactions…"
         class="flex-1 bg-transparent text-base text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-400 outline-none"
       />
       <button
-        onclick={() => { if (query) query = ''; else onClose(); }}
+        onclick={() => { if (query) query = ''; else open = false; }}
         class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors cursor-pointer"
       >
         <X size={16} />
@@ -128,7 +109,7 @@
       {/if}
     </div>
 
-    <!-- Footer hint -->
+  <!-- Footer hint -->
     <div class="px-4 py-2 border-t border-zinc-100 dark:border-zinc-800 text-xs text-zinc-400 dark:text-zinc-400 flex justify-between">
       <span>
         {#if query.trim().length >= 1}
@@ -139,5 +120,4 @@
       </span>
       <span>Click to navigate · Esc to close</span>
     </div>
-  </div>
-</div>
+</Modal>
