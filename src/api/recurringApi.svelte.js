@@ -55,6 +55,10 @@ class RecurringApi {
       const lastOcurrenceDate = new Date(dateRange[6]);
       lastOcurrenceDate.setDate(lastOcurrenceDate.getDate() - daysSinceLastOcurrence);
 
+      if(expense.excludedDates?.includes(lastOcurrenceDate.toISOString().split('T')[0])){
+        continue; //ocurrence for the date is excluded
+      }
+
       // console.log({lastOcurrenceDate, daysSinceLastOcurrence, daysBetweenCeil, dateRange, expense})
       results.push({expense, date: lastOcurrenceDate});
     }
