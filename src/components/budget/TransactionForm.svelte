@@ -18,6 +18,10 @@
   let status = $state('pending');
 
   let isOpen = $state(false);
+
+
+  let currentTransaction;
+
   onMount(() => {
     signal.sub("OPEN_TRANSACTION_FORM", signalSubId, (data) => {
       isOpen = true;
@@ -32,6 +36,7 @@
         status = transaction.status;
         isNewTransaction = transaction.id === null;
       }
+      currentTransaction = transaction;
     });
   })
   onDestroy(() => {
@@ -62,7 +67,7 @@
       if(transaction.id.startsWith("_recurring_")){
         const expenseId = transaction.id.substring("_recurring_".length)
         const recurringExpense = recurringApi.getById(expenseId);
-        recurringExpense.excludedDates.push(transaction.date);
+        recurringExpense.excludedDates.push(currentTransaction.date); //excludes the date of the mock transaction, not the one from the form (could be edited by user)
         recurringApi.update(expenseId);
 
         transaction.id = crypto.randomUUID();
