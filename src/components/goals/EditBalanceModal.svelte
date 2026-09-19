@@ -57,8 +57,8 @@
         <!-- Current value readout -->
         <div class="flex items-baseline gap-2">
           <span class="text-2xl font-bold text-zinc-100">{formatCurrency(balance)}</span>
-          <span class="text-2xl font-bold text-zinc-500">/ {formatCurrency(target)}</span>
-          <span class="ml-auto text-sm text-zinc-500">{progress}%</span>
+          <span class="text-2xl font-bold text-zinc-400">/ {formatCurrency(target)}</span>
+          <span class="ml-auto text-sm text-zinc-400">{progress}%</span>
         </div>
 
         <!-- Editable name -->
@@ -67,7 +67,7 @@
           <input
             type="text"
             bind:value={name}
-            class="px-3 py-2 text-sm border border-zinc-700 rounded-lg bg-zinc-900 text-zinc-100 placeholder-zinc-500 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+            class="px-3 py-2 text-sm border border-zinc-700 rounded-lg bg-zinc-900 text-zinc-100 placeholder-zinc-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
           />
         </label>
 
@@ -80,7 +80,7 @@
               bind:value={balance}
               step="0.01"
               min="0"
-              class="px-3 py-2 text-sm border border-zinc-700 rounded-lg bg-zinc-900 text-zinc-100 placeholder-zinc-500 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+              class="px-3 py-2 text-sm border border-zinc-700 rounded-lg bg-zinc-900 text-zinc-100 placeholder-zinc-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
             />
           </label>
           <label class="flex flex-col gap-1">
@@ -90,7 +90,7 @@
               bind:value={target}
               step="0.01"
               min="0"
-              class="px-3 py-2 text-sm border border-zinc-700 rounded-lg bg-zinc-900 text-zinc-100 placeholder-zinc-500 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+              class="px-3 py-2 text-sm border border-zinc-700 rounded-lg bg-zinc-900 text-zinc-100 placeholder-zinc-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
             />
           </label>
         </div>

@@ -80,7 +80,7 @@
 
 {#if transactions.length === 0}
   <div class="flex flex-1 items-center justify-center py-4 w-full">
-    <p class="text-xs text-zinc-400 dark:text-zinc-500">No {isIncome ? 'income' : 'expenses'} yet</p>
+    <p class="text-xs text-zinc-400 dark:text-zinc-400">No {isIncome ? 'income' : 'expenses'} yet</p>
   </div>
 {:else}
   <div class="w-full">
@@ -88,7 +88,7 @@
       <h4 class="text-xs font-semibold uppercase tracking-wider {isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}">
         {isIncome ? 'Income' : 'Expenses'}
       </h4>
-      <span class="text-xs text-zinc-400 dark:text-zinc-500">
+      <span class="text-xs text-zinc-400 dark:text-zinc-400">
         {formatCurrency(transactions.reduce((sum, t) => sum + t.amount, 0))}
       </span>
     </div>
@@ -98,7 +98,7 @@
         <div class="group flex items-center gap-3 py-2 px-1 border-b border-zinc-100 dark:border-zinc-800 last:border-0 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded transition-colors">
           <!-- Status toggle -->
           <button
-            class="shrink-0 p-0.5 rounded {t.status === 'done' ? 'text-zinc-400 dark:text-zinc-500' : 'text-zinc-300 dark:text-zinc-600 hover:text-zinc-500 dark:hover:text-zinc-400'} transition-colors cursor-pointer"
+            class="shrink-0 p-0.5 rounded {t.status === 'done' ? 'text-zinc-400 dark:text-zinc-400' : 'text-zinc-300 dark:text-zinc-600 hover:text-zinc-400 dark:hover:text-zinc-400'} transition-colors cursor-pointer"
             title={t.status === 'done' ? 'Mark as Pending' : 'Mark as Done'}
             onclick={() => handleToggleStatus(t.id)}
           >
@@ -115,11 +115,11 @@
               {t.description}
             </p>
             {#if !isRecurring}
-              <p class="text-xs text-zinc-400 dark:text-zinc-500">
+              <p class="text-xs text-zinc-400 dark:text-zinc-400">
                 {t.category || 'Uncategorized'} · {dateUtils.createLocalDate(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               </p>
             {:else}
-              <p class="text-xs text-zinc-400 dark:text-zinc-500">
+              <p class="text-xs text-zinc-400 dark:text-zinc-400">
                 <span class="text-red-400 underline decoration-dashed underline-offset-1">Recurring Expense</span> · {dateUtils.createLocalDate(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               </p>            
             {/if}

@@ -93,7 +93,7 @@
       <h2 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
         {dayNames[dateRange[0].getDay()]}, {dateRange[0].toLocaleString('default', { month: 'short' })} {dateRange[0].getDate()} – {dayNames[dateRange[6].getDay()]}, {dateRange[6].toLocaleString('default', { month: 'short' })} {dateRange[6].getDate()}
       </h2>
-      <span class="text-xs text-zinc-400 dark:text-zinc-500">W{weekNumber}</span>
+      <span class="text-xs text-zinc-400 dark:text-zinc-400">W{weekNumber}</span>
       {#if isCurrentWeek}
         <span class="text-xs font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/50 px-1.5 py-0.5 rounded">now</span>
       {/if}
@@ -119,7 +119,7 @@
 
   <!-- Footer -->
   <div class="flex items-center justify-between px-4 py-2.5 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 rounded-b-lg">
-    <span class="text-xs font-medium text-zinc-500 dark:text-zinc-400">Weekly net</span>
+    <span class="text-xs font-medium text-zinc-400 dark:text-zinc-400">Weekly net</span>
     <span class="text-sm font-semibold {weeklyNet < 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}">
       {formatCurrency(weeklyNet)}
     </span>

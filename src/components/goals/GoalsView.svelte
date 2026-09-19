@@ -118,7 +118,7 @@
           <div class="flex items-start justify-between px-4 py-3 border-b border-zinc-800">
             <div class="flex flex-col gap-0.5 min-w-0">
               <h2 class="text-md font-semibold text-zinc-100 truncate">{goal.name}</h2>
-              <span class="text-sm text-zinc-500">
+              <span class="text-sm text-zinc-400">
                 {formatCurrency(goal.balance)} of {formatCurrency(goal.target)}
               </span>
             </div>
@@ -163,7 +163,7 @@
                   id="ajust_goal_{goal.id}"
                   type="number"
                   placeholder="+/- amount"
-                  class="flex-1 min-w-0 px-3 py-2 text-sm border border-zinc-700 rounded-lg bg-zinc-900 text-zinc-100 placeholder-zinc-500 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+                  class="flex-1 min-w-0 px-3 py-2 text-sm border border-zinc-700 rounded-lg bg-zinc-900 text-zinc-100 placeholder-zinc-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
                   onkeydown={(event) => adjustBalanceKeyDown(event, goal.id)}
                 />
                 <button

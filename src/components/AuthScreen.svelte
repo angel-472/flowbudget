@@ -50,7 +50,7 @@
     <!-- Logo & title -->
     <div class="text-center mb-8">
       <h1 class="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">FlowBudget</h1>
-      <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+      <p class="mt-1 text-sm text-zinc-400 dark:text-zinc-400">
         {isSignUp ? 'Create your account' : 'Sign in to your account'}
       </p>
     </div>
@@ -72,7 +72,7 @@
               type="email"
               required
               bind:value={email}
-              class="w-full pl-9 pr-3 py-2 border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+              class="w-full pl-9 pr-3 py-2 border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
               placeholder="you@example.com"
               autocomplete="email"
             />
@@ -93,7 +93,7 @@
               type={showPassword ? 'text' : 'password'}
               required
               bind:value={password}
-              class="w-full pl-9 pr-10 py-2 border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+              class="w-full pl-9 pr-10 py-2 border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
               placeholder="Enter password"
               autocomplete="current-password"
             />
@@ -127,7 +127,7 @@
                 type={showConfirmPassword ? 'text' : 'password'}
                 required
                 bind:value={confirmPassword}
-                class="w-full pl-9 pr-10 py-2 border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+                class="w-full pl-9 pr-10 py-2 border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
                 placeholder="Confirm password"
                 autocomplete="confirm-password"
               />
@@ -172,7 +172,7 @@
     </div>
 
     <!-- Toggle mode -->
-    <p class="text-center mt-6 text-sm text-zinc-500 dark:text-zinc-400">
+    <p class="text-center mt-6 text-sm text-zinc-400 dark:text-zinc-400">
       {isSignUp ? 'Already have an account?' : "Don't have an account?"}
       <button
         onclick={() => {
@@ -188,7 +188,7 @@
       </button>
     </p>
 
-    <p class="text-center mt-4 text-xs text-zinc-400 dark:text-zinc-500">
+    <p class="text-center mt-4 text-xs text-zinc-400 dark:text-zinc-400">
       Manage your weekly budget and cash flow.
     </p>
   </div>

@@ -122,7 +122,7 @@
     </div>
 
     <article class="flex flex-col items-center justify-between px-4 py-3 border border-zinc-800 bg-zinc-900 rounded-xl mb-6">
-      <p class="text-zinc-500 mb-0.5 text-xs">Monthly Average</p>
+      <p class="text-zinc-400 mb-0.5 text-xs">Monthly Average</p>
       <p class="text-md font-semibold text-red-400">{formatCurrency(monthlyAverage)}</p>
     </article>
 

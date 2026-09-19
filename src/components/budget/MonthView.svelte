@@ -124,7 +124,7 @@
       <h2 class="text-2xl font-bold tracking-tight {isCurrentMonth ? 'text-indigo-600 dark:text-indigo-400' : 'text-zinc-900 dark:text-zinc-100'}">
         {monthName} {currentYear}
       </h2>
-      <p class="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
+      <p class="text-xs text-zinc-400 dark:text-zinc-400 mt-0.5">
         {monthlySummary.transactionCount} transaction{monthlySummary.transactionCount !== 1 ? 's' : ''}
       </p>
     </div>
@@ -140,15 +140,15 @@
   <!-- Monthly summary bar -->
   <div class="grid grid-cols-3 gap-px bg-zinc-200 dark:bg-zinc-800 rounded-xl overflow-hidden mb-8 border border-zinc-200 dark:border-zinc-800">
     <div class="bg-white dark:bg-zinc-900 px-4 py-3 text-center">
-      <p class="text-xs text-zinc-400 dark:text-zinc-500 mb-0.5">Income</p>
+      <p class="text-xs text-zinc-400 dark:text-zinc-400 mb-0.5">Income</p>
       <p class="text-md font-semibold text-emerald-600 dark:text-emerald-400">{formatCurrency(monthlySummary.income)}</p>
     </div>
     <div class="bg-white dark:bg-zinc-900 px-4 py-3 text-center">
-      <p class="text-xs text-zinc-400 dark:text-zinc-500 mb-0.5">Expenses</p>
+      <p class="text-xs text-zinc-400 dark:text-zinc-400 mb-0.5">Expenses</p>
       <p class="text-md font-semibold text-red-600 dark:text-red-400">{formatCurrency(monthlySummary.expenses)}</p>
     </div>
     <div class="bg-white dark:bg-zinc-900 px-4 py-3 text-center">
-      <p class="text-xs text-zinc-400 dark:text-zinc-500 mb-0.5">Net</p>
+      <p class="text-xs text-zinc-400 dark:text-zinc-400 mb-0.5">Net</p>
       <p class="text-md font-semibold {monthlySummary.net >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}">
         {formatCurrency(monthlySummary.net)}
       </p>

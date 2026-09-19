@@ -168,7 +168,7 @@
   <div class="flex items-center justify-center min-h-screen">
     <div class="flex flex-col items-center gap-3">
       <div class="h-8 w-8 animate-spin rounded-full border-2 border-zinc-200 border-t-indigo-600 dark:border-zinc-700 dark:border-t-indigo-400"></div>
-      <p class="text-sm text-zinc-400 dark:text-zinc-500">Loading...</p>
+      <p class="text-sm text-zinc-400 dark:text-zinc-400">Loading...</p>
     </div>
   </div>
 {:else if !user}
@@ -182,7 +182,7 @@
       transition:fly={{ y: -8, duration: 200 }}
     >
       <span class="h-3 w-3 animate-spin rounded-full border-2 border-zinc-200 border-t-indigo-600 dark:border-zinc-600 dark:border-t-indigo-400"></span>
-      <span class="text-xs font-medium text-zinc-500 dark:text-zinc-400">Syncing…</span>
+      <span class="text-xs font-medium text-zinc-400 dark:text-zinc-400">Syncing…</span>
     </div>
   {/if}
 
@@ -200,7 +200,7 @@
 
           <button
             onclick={() => showSearch = true}
-            class="p-2 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer flex gap-2 items-center"
+            class="p-2 rounded-lg text-zinc-400 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer flex gap-2 items-center"
             title="Search (⌘K)"
           >
             <Search size={20} />
@@ -209,7 +209,7 @@
           <!-- TODO: Add these options back in a preferences section -->
           <!-- <button
             onclick={toggleDarkMode}
-            class="p-2 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+            class="p-2 rounded-lg text-zinc-400 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
             title="Toggle theme"
           >
             {#if darkMode}
@@ -220,7 +220,7 @@
           </button> -->
           
           <button
-            class="p-2 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+            class="p-2 rounded-lg text-zinc-400 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
             onclick={handleSignOut}
             title="Sign Out"
           >
@@ -241,7 +241,7 @@
             class="flex-1 rounded-xl py-2.5 text-sm font-medium border transition-colors cursor-pointer
               {currentView === id
                 ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border-zinc-200 dark:border-zinc-700'
-                : 'text-zinc-400 dark:text-zinc-500 border-transparent hover:text-zinc-600 dark:hover:text-zinc-300'}"
+                : 'text-zinc-400 dark:text-zinc-400 border-transparent hover:text-zinc-600 dark:hover:text-zinc-300'}"
           >
             {label}
           </button>

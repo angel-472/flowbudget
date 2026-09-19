@@ -73,12 +73,12 @@
   >
     <!-- Input row -->
     <div class="flex items-center gap-3 px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
-      <Search size={18} class="shrink-0 text-zinc-400 dark:text-zinc-500" />
+      <Search size={18} class="shrink-0 text-zinc-400 dark:text-zinc-400" />
       <input
         bind:this={inputEl}
         bind:value={query}
         placeholder="Search transactions…"
-        class="flex-1 bg-transparent text-base text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 outline-none"
+        class="flex-1 bg-transparent text-base text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-400 outline-none"
       />
       <button
         onclick={() => { if (query) query = ''; else onClose(); }}
@@ -91,7 +91,7 @@
     <!-- Results -->
     <div class="max-h-[60vh] overflow-y-auto">
       {#if query.trim().length >= 1 && results.length === 0}
-        <p class="py-12 text-center text-sm text-zinc-400 dark:text-zinc-500">
+        <p class="py-12 text-center text-sm text-zinc-400 dark:text-zinc-400">
           No results for "<span class="font-medium">{query}</span>"
         </p>
       {:else}
@@ -111,7 +111,7 @@
 
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">{t.description}</p>
-                <p class="text-xs text-zinc-400 dark:text-zinc-500">
+                <p class="text-xs text-zinc-400 dark:text-zinc-400">
                   {t.category || 'Uncategorized'} · {formatDate(t.date)}
                 </p>
               </div>
@@ -120,7 +120,7 @@
                 <span class="text-sm font-medium tabular-nums {t.type === 'incomes' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}">
                   {formatCurrency(t.amount)}
                 </span>
-                <span class="text-xs text-zinc-400 dark:text-zinc-500 capitalize">{t.status}</span>
+                <span class="text-xs text-zinc-400 dark:text-zinc-400 capitalize">{t.status}</span>
               </div>
             </button>
           {/each}
@@ -129,7 +129,7 @@
     </div>
 
     <!-- Footer hint -->
-    <div class="px-4 py-2 border-t border-zinc-100 dark:border-zinc-800 text-xs text-zinc-400 dark:text-zinc-500 flex justify-between">
+    <div class="px-4 py-2 border-t border-zinc-100 dark:border-zinc-800 text-xs text-zinc-400 dark:text-zinc-400 flex justify-between">
       <span>
         {#if query.trim().length >= 1}
           {results.length} result{results.length !== 1 ? 's' : ''}

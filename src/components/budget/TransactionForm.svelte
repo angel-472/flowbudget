@@ -98,7 +98,7 @@
       <form onsubmit={handleSubmit} class="space-y-3">
         <div class="grid grid-cols-2 gap-3">
           <label class="flex flex-col gap-1">
-            <span class="text-xs font-medium text-zinc-500 dark:text-zinc-400">Type</span>
+            <span class="text-xs font-medium text-zinc-400 dark:text-zinc-400">Type</span>
             <select
               bind:value={type}
               class="px-3 py-2 text-sm border rounded-lg transition-colors cursor-pointer
@@ -113,7 +113,7 @@
           </label>
           
           <label class="flex flex-col gap-1">
-            <span class="text-xs font-medium text-zinc-500 dark:text-zinc-400">Date</span>
+            <span class="text-xs font-medium text-zinc-400 dark:text-zinc-400">Date</span>
             <input
               type="date"
               bind:value={date}
@@ -123,37 +123,37 @@
         </div>
         
         <label class="flex flex-col gap-1">
-          <span class="text-xs font-medium text-zinc-500 dark:text-zinc-400">Description</span>
+          <span class="text-xs font-medium text-zinc-400 dark:text-zinc-400">Description</span>
           <input
             type="text"
             bind:value={description}
             placeholder="e.g. Groceries, Salary"
-            class="px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+            class="px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
             required
           />
         </label>
         
         <div class="grid grid-cols-2 gap-3">
           <label class="flex flex-col gap-1">
-            <span class="text-xs font-medium text-zinc-500 dark:text-zinc-400">Amount ($)</span>
+            <span class="text-xs font-medium text-zinc-400 dark:text-zinc-400">Amount ($)</span>
             <input
               type="number"
               bind:value={amount}
               placeholder="0.00"
               step="0.01"
               min="0.01"
-              class="px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+              class="px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
               required
             />
           </label>
           
           <label class="flex flex-col gap-1">
-            <span class="text-xs font-medium text-zinc-500 dark:text-zinc-400">Category</span>
+            <span class="text-xs font-medium text-zinc-400 dark:text-zinc-400">Category</span>
             <input
               type="text"
               bind:value={category}
               placeholder="Optional"
-              class="px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+              class="px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
             />
           </label>
         </div>

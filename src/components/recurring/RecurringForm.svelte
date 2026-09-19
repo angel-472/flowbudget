@@ -69,7 +69,7 @@
           bind:value={name}
           bind:this={nameField}
           placeholder="Goal Name e.g. Rent, Phone Bill"
-          class="px-3 py-2 text-md border border-zinc-700 rounded-lg bg-zinc-900 text-zinc-100 placeholder-zinc-500 font-bold focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+          class="px-3 py-2 text-md border border-zinc-700 rounded-lg bg-zinc-900 text-zinc-100 placeholder-zinc-400 font-bold focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
           required
         />
       </label>
@@ -82,7 +82,7 @@
           placeholder="0.00"
           step="0.01"
           min="0.01"
-          class="px-3 py-2 text-sm border border-zinc-700 rounded-lg bg-zinc-900 text-zinc-100 placeholder-zinc-500 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+          class="px-3 py-2 text-sm border border-zinc-700 rounded-lg bg-zinc-900 text-zinc-100 placeholder-zinc-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
           required
         />
       </label>
@@ -92,7 +92,7 @@
         <input
           type="date"
           bind:value={startDate}
-          class="px-3 py-2 text-sm border border-zinc-700 rounded-lg bg-zinc-900 text-zinc-100 placeholder-zinc-500 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+          class="px-3 py-2 text-sm border border-zinc-700 rounded-lg bg-zinc-900 text-zinc-100 placeholder-zinc-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
         />
       </label>
 
@@ -104,7 +104,7 @@
           placeholder="0.00"
           step="1"
           min="7"
-          class="px-3 py-2 text-sm border border-zinc-700 rounded-lg bg-zinc-900 text-zinc-100 placeholder-zinc-500 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+          class="px-3 py-2 text-sm border border-zinc-700 rounded-lg bg-zinc-900 text-zinc-100 placeholder-zinc-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
         />
       </label>
 
