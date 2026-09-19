@@ -117,13 +117,13 @@
   >
     <div role="tablist" aria-label="Views" class="relative flex flex-1 min-w-0 h-full">
       <!-- Liquid glass indicator; positioned by GSAP -->
-      <div
+      <!-- <div
         bind:this={indicatorEl}
         class="absolute left-0 top-1/2 -mt-5.5 h-11 w-18 rounded-2xl pointer-events-none opacity-0
           bg-gradient-to-b from-black/[0.03] to-black/[0.01] dark:from-white/[0.12] dark:to-white/[0.08]
           border border-black/[0.03] dark:border-white/[0.10] backdrop-blur-md"
         aria-hidden="true"
-      ></div>
+      ></div> -->
 
       {#each views as { id, label, icon: Icon }, i (id)}
         {@const active = router.view === id}
