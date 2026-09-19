@@ -1,5 +1,5 @@
 <script>
-  import { CalendarDays, Repeat, Target, Plus } from 'lucide-svelte';
+  import { CalendarDays, Repeat,  Plus, Goal } from 'lucide-svelte';
   import { router } from '/src/api/router.svelte.js';
   import { openNewTransaction } from '/src/components/budget/TransactionForm.svelte';
   import { onMount } from 'svelte';
@@ -8,7 +8,7 @@
   const views = [
     { id: 'month', label: 'Month', icon: CalendarDays },
     { id: 'recurring', label: 'Recurring', icon: Repeat },
-    { id: 'goals', label: 'Goals', icon: Target },
+    { id: 'goals', label: 'Goals', icon: Goal },
   ];
 
   // One element list per tablist: only the visible one can take focus.
