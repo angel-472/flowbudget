@@ -97,12 +97,20 @@
   let monthlyAverage = $state();
   $effect(() => {
     const total = recurringExpenses.reduce((accumulator, currentItem) => {
-      if (currentItem.frequencyDays > 31) return accumulator;
-      return accumulator + currentItem.amount;
+      if (currentItem.frequencyDays > 31) return accumulator; // stays the same because it's not inside a month
+      const times = Math.round(31 / currentItem.frequencyDays);
+      return accumulator + (currentItem.amount * times);
     }, 0);
     monthlyAverage = total;
   })
 </script>
+
+
+
+
+
+
+
 
 <div class="px-4 sm:px-6 py-6">
 
